@@ -1,6 +1,5 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Text } from 'react-native';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -28,21 +27,15 @@ export default function RootLayout() {
         <Stack.Screen 
           name="Login" 
           component={LoginPage} 
-          
           options={{
             headerShown: false,
-             headerTitle: () => (
-            <Text style={{ color: '#77B5FE', fontWeight: 'bold', fontSize: 20, letterSpacing: 2 }}>SIAMP-G</Text>
-          ) }}
+          }}
         />
         <Stack.Screen 
           name="Register" 
           component={RegisterPage} 
           options={{ 
-            headerShown: false, 
-            headerTitle: () => (
-              <Text style={{ color: '#77B5FE', fontWeight: 'bold', fontSize: 20, letterSpacing: 2 }}>SIAMP-G</Text>
-            )
+            headerShown: false,
           }}
         />
       </Stack.Navigator>

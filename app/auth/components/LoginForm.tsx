@@ -34,7 +34,7 @@ export default function LoginForm() {
       <View style={styles.card}>
         <View style={styles.logoContainer}>
           <Image
-            source={{ uri: 'https://cdn-icons-png.flaticon.com/512/616/616408.png' }}
+            source={{ uri: 'https://c0.klipartz.com/pngpicture/992/606/gratis-png-pata-de-perro-salvaje-huella-digital.png' }}
             style={styles.logo}
             resizeMode="contain"
           />

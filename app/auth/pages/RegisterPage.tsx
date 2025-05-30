@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import RegisterForm from '../components/RegisterForm';
 
 export default function RegisterPage() {
@@ -11,5 +11,11 @@ export default function RegisterPage() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, justifyContent: 'center' }
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    backgroundColor: '#77B5FE',
+  },
 });
