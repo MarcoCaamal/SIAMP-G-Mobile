@@ -7,6 +7,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 import LoginPage from './auth/pages/LoginPage';
 import RegisterPage from './auth/pages/RegisterPage';
+import VerificatonPage from './auth/pages/VerificatonPage';
 
 
 const Stack = createNativeStackNavigator();
@@ -35,6 +36,13 @@ export default function RootLayout() {
           name="Register" 
           component={RegisterPage} 
           options={{ 
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="Verificaton"
+          component={VerificatonPage}
+          options={{
             headerShown: false,
           }}
         />

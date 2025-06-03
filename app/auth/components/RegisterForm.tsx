@@ -1,4 +1,5 @@
 import { Picker } from "@react-native-picker/picker";
+import { useNavigation } from '@react-navigation/native';
 import React, { useState } from "react";
 import {
   Pressable,
@@ -11,6 +12,7 @@ import {
 } from "react-native";
 
 export default function RegisterForm() {
+  const navigation = useNavigation();
   const [name, setName] = useState("");
   const [email, setEmail] = useState(""); 
   const [password, setPassword] = useState("");
@@ -39,6 +41,7 @@ export default function RegisterForm() {
     if (Object.keys(validationErrors).length > 0) return;
 
     console.log({ name, email, password, timezone });
+    navigation.navigate('Verificaton' as never);
   };
 
   return (
