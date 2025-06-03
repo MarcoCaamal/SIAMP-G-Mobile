@@ -79,8 +79,7 @@ export default function LoginForm() {
         </Pressable>
 
         <Text style={styles.registerText}>
-          ¿No tienes cuenta?{' '}
-          <Text style={styles.link} onPress={() => navigation.navigate('Register' as never)}>Regístrate</Text>
+          ¿No tienes cuenta? <Text style={styles.link} onPress={() => navigation.navigate('Register' as never)}>Regístrate</Text>
         </Text>
       </View>
 
