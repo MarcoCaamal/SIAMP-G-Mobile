@@ -1,44 +1,69 @@
 import { Picker } from "@react-native-picker/picker";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  View,
+    Alert,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Switch,
+    Text,
+    TextInput,
+    View
 } from "react-native";
+import { useRegister } from "../hooks/useAuth";
+import { UserRegisterData } from "../types/auth.types";
 
 export default function RegisterForm() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState(""); 
-  const [password, setPassword] = useState("");
+  const router = useRouter();
+  const { register, loading } = useRegister();
+
+  const [userRegisterData, setUserRegisterData] = useState<UserRegisterData>({
+    name: "",
+    email: "",
+    password: "",
+    timezone: "UTC-03:00",
+  });
   const [confirm, setConfirm] = useState("");
-  const [timezone, setTimezone] = useState("UTC-03:00");
   const [agree, setAgree] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
-    if (!name.trim()) newErrors.name = "El nombre es obligatorio";
-    if (!email.trim()) newErrors.email = "El correo es obligatorio";
-    if (!password) newErrors.password = "La contraseña es obligatoria";
-    else if (password.length < 6)
+    if (!userRegisterData.name.trim()) newErrors.name = "El nombre es obligatorio";
+    if (!userRegisterData.email.trim()) newErrors.email = "El correo es obligatorio";
+    if (!userRegisterData.password) newErrors.password = "La contraseña es obligatoria";
+    else if (userRegisterData.password.length < 6)
       newErrors.password = "La contraseña debe tener al menos 6 caracteres";
     if (!confirm) newErrors.confirm = "Debes confirmar la contraseña";
-    else if (password !== confirm)
+    else if (userRegisterData.password !== confirm)
       newErrors.confirm = "Las contraseñas no coinciden";
     if (!agree) newErrors.agree = "Debes aceptar los términos y condiciones";
     return newErrors;
   };
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     const validationErrors = validate();
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
 
-    console.log({ name, email, password, timezone });
+    try {
+      const response = await register(userRegisterData);
+      
+      if (response._success) {        Alert.alert(
+          "Registro exitoso",
+          "Tu cuenta ha sido creada exitosamente.",
+          [
+            {
+              text: "OK",
+              onPress: () => router.push("/auth/login")
+            }
+          ]
+        );
+      }
+    } catch (error: any) {
+      Alert.alert("Error en el registro", error.message || "Error desconocido");
+    }
   };
 
   return (
@@ -58,8 +83,8 @@ export default function RegisterForm() {
           <TextInput
             style={styles.input}
             placeholder="Ingresa tu nombre completo"
-            value={name}
-            onChangeText={setName}
+            value={userRegisterData.name}
+            onChangeText={(text) => setUserRegisterData({ ...userRegisterData, name: text })}
           />
           {errors.name && <Text style={styles.error}>{errors.name}</Text>}
         </View>
@@ -70,8 +95,8 @@ export default function RegisterForm() {
             style={styles.input}
             placeholder="ejemplo@email.com"
             keyboardType="email-address"
-            value={email}
-            onChangeText={setEmail}
+            value={userRegisterData.email}
+            onChangeText={(text) => setUserRegisterData({ ...userRegisterData, email: text })}
             autoCapitalize="none"
           />
           {errors.email && <Text style={styles.error}>{errors.email}</Text>}
@@ -83,8 +108,8 @@ export default function RegisterForm() {
             style={styles.input}
             placeholder="Crea una contraseña"
             secureTextEntry
-            value={password}
-            onChangeText={setPassword}
+            value={userRegisterData.password}
+            onChangeText={(text) => setUserRegisterData({ ...userRegisterData, password: text })}
           />
           {errors.password && (
             <Text style={styles.error}>{errors.password}</Text>
@@ -107,8 +132,8 @@ export default function RegisterForm() {
           <Text style={styles.label}>Zona horaria</Text>
           <View style={styles.pickerWrapper}>
             <Picker
-              selectedValue={timezone}
-              onValueChange={(itemValue: string) => setTimezone(itemValue)}
+              selectedValue={userRegisterData.timezone}
+              onValueChange={(itemValue: string) => setUserRegisterData({ ...userRegisterData, timezone: itemValue })}
             >
               <Picker.Item label="UTC -03:00 Buenos Aires" value="UTC-03:00" />
               <Picker.Item label="UTC -06:00 CDMX" value="UTC-06:00" />
@@ -125,8 +150,14 @@ export default function RegisterForm() {
         </View>
         {errors.agree && <Text style={styles.error}>{errors.agree}</Text>}
 
-        <Pressable style={styles.button} onPress={handleRegister}>
-          <Text style={styles.buttonText}>Registrarse</Text>
+        <Pressable 
+          style={[styles.button, loading && styles.buttonDisabled]} 
+          onPress={handleRegister}
+          disabled={loading}
+        >
+          <Text style={styles.buttonText}>
+            {loading ? "Registrando..." : "Registrarse"}
+          </Text>
         </Pressable>
 
         <Text style={styles.loginText}>
@@ -225,6 +256,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     width: "100%",
     maxWidth: 340,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {
     color: "white",
