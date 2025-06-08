@@ -29,25 +29,23 @@ export default function LoginForm() {
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
 
-    try {
-      // Aquí deberías llamar a tu API de login
-      // Simulación de respuesta del backend
-      const response = await fakeLoginApi(email, password);
-      if (response.success) {
-        // Login exitoso
-        const parentNavigation = navigation.getParent();
-        if (parentNavigation) {
-          parentNavigation.navigate('Main');
-        }
-      } else if (response.error === 'User is not verified') {
-        // Redirigir a pantalla de verificación si la cuenta no está verificada
-        navigation.navigate('VerificationScreen');
+    // Aquí deberías llamar a tu API real de login
+    // Simulación de API para ejemplo
+    const result = await fakeLoginApi(email, password);
+    if (result.success) {
+      // Si el usuario está verificado, navega al Main (o lo que corresponda)
+      // Si no está verificado, navega a VerificationScreen
+      if (result.error === 'User is not verified') {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'VerificationScreen' }],
+        });
       } else {
-        // Otro error
-        setErrors({ email: 'Credenciales incorrectas o error desconocido' });
+        // Aquí iría la navegación al flujo principal de la app
+        // navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
       }
-    } catch (error) {
-      setErrors({ email: 'Error de red o del servidor' });
+    } else {
+      setErrors({ email: 'Credenciales inválidas' });
     }
   };
 

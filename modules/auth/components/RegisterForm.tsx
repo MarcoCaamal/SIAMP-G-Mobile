@@ -3,7 +3,6 @@ import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import React, { useState } from "react";
 import {
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -51,24 +50,17 @@ export default function RegisterForm() {
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
 
-    try {
-      const response = await register(userRegisterData);
-      
-      if (response._success) {
-        Alert.alert(
-          "Registro exitoso",
-          "Tu cuenta ha sido creada exitosamente.",
-          [
-            {
-              text: "OK",
-              onPress: () => navigation.navigate("VerificationScreen" as never)
-            }
-          ]
-        );
-      }
-    } catch (error: any) {
-      Alert.alert("Error en el registro", error.message || "Error desconocido");
-    }
+    // MODO DEMO: NAVEGA SIEMPRE A VERIFICACIÓN PARA VER EL DISEÑO
+    navigation.navigate("VerificationScreen" as never);
+    // Cuando tengas una API real, reemplaza la línea de arriba por:
+    // try {
+    //   const response = await register(userRegisterData);
+    //   if (response._success) {
+    //     navigation.navigate("VerificationScreen" as never);
+    //   }
+    // } catch (error: any) {
+    //   Alert.alert("Error en el registro", error.message || "Error desconocido");
+    // }
   };
 
   return (
