@@ -1,21 +1,25 @@
 import { Picker } from "@react-native-picker/picker";
-import { useRouter } from "expo-router";
+import { useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
 import React, { useState } from "react";
 import {
-    Alert,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TextInput,
-    View
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  View
 } from "react-native";
+import { AuthStackParamList } from "../../../navigation/AuthNavigator";
 import { useRegister } from "../hooks/useAuth";
 import { UserRegisterData } from "../types/auth.types";
 
+type RegisterFormNavigationProp = StackNavigationProp<AuthStackParamList, 'Register'>;
+
 export default function RegisterForm() {
-  const router = useRouter();
+  const navigation = useNavigation<RegisterFormNavigationProp>();
   const { register, loading } = useRegister();
 
   const [userRegisterData, setUserRegisterData] = useState<UserRegisterData>({
@@ -50,13 +54,14 @@ export default function RegisterForm() {
     try {
       const response = await register(userRegisterData);
       
-      if (response._success) {        Alert.alert(
+      if (response._success) {
+        Alert.alert(
           "Registro exitoso",
           "Tu cuenta ha sido creada exitosamente.",
           [
             {
               text: "OK",
-              onPress: () => router.push("/auth/login")
+              onPress: () => navigation.navigate("Login")
             }
           ]
         );
@@ -133,7 +138,9 @@ export default function RegisterForm() {
           <View style={styles.pickerWrapper}>
             <Picker
               selectedValue={userRegisterData.timezone}
-              onValueChange={(itemValue: string) => setUserRegisterData({ ...userRegisterData, timezone: itemValue })}
+              onValueChange={(itemValue: string) => 
+                setUserRegisterData({ ...userRegisterData, timezone: itemValue })
+              }
             >
               <Picker.Item label="UTC -03:00 Buenos Aires" value="UTC-03:00" />
               <Picker.Item label="UTC -06:00 CDMX" value="UTC-06:00" />
@@ -159,10 +166,12 @@ export default function RegisterForm() {
             {loading ? "Registrando..." : "Registrarse"}
           </Text>
         </Pressable>
-
-        <Text style={styles.loginText}>
-          ¿Ya tienes una cuenta? <Text style={styles.link}>Inicia sesión</Text>
-        </Text>
+        
+        <Pressable onPress={() => navigation.navigate("Login")}>
+          <Text style={styles.loginText}>
+            ¿Ya tienes una cuenta? <Text style={styles.link}>Inicia sesión</Text>
+          </Text>
+        </Pressable>
       </View>
 
       <Text style={styles.footer}>© 2025 SIAMP-G</Text>

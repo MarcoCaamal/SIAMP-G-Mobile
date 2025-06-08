@@ -1,14 +1,14 @@
 import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 
-import { Collapsible } from '@/modules/shared/components/Collapsible';
-import { ExternalLink } from '@/modules/shared/components/ExternalLink';
-import ParallaxScrollView from '@/modules/shared/components/ParallaxScrollView';
-import { ThemedText } from '@/modules/shared/components/ThemedText';
-import { ThemedView } from '@/modules/shared/components/ThemedView';
-import { IconSymbol } from '@/modules/shared/components/ui/IconSymbol';
+import { Collapsible } from '../components/Collapsible';
+import { ExternalLink } from '../components/ExternalLink';
+import ParallaxScrollView from '../components/ParallaxScrollView';
+import { ThemedText } from '../components/ThemedText';
+import { ThemedView } from '../components/ThemedView';
+import { IconSymbol } from '../components/ui/IconSymbol';
 
-export default function TabTwoScreen() {
+export default function ExploreScreen() {
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
@@ -27,11 +27,11 @@ export default function TabTwoScreen() {
       <Collapsible title="File-based routing">
         <ThemedText>
           This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
+          <ThemedText type="defaultSemiBold">modules/shared/screens/HomeScreen.tsx</ThemedText> and{' '}
+          <ThemedText type="defaultSemiBold">modules/shared/screens/ExploreScreen.tsx</ThemedText>
         </ThemedText>
         <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
+          The layout file in <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText>{' '}
           sets up the tab navigator.
         </ThemedText>
         <ExternalLink href="https://docs.expo.dev/router/introduction">
@@ -50,7 +50,7 @@ export default function TabTwoScreen() {
           <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
           different screen densities
         </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
+        <Image source={require('../../../assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
         <ExternalLink href="https://reactnative.dev/docs/images">
           <ThemedText type="link">Learn more</ThemedText>
         </ExternalLink>
@@ -70,7 +70,7 @@ export default function TabTwoScreen() {
         <ThemedText>
           This template has light and dark mode support. The{' '}
           <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
+          what the user's current color scheme is, and so you can adjust UI colors accordingly.
         </ThemedText>
         <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
           <ThemedText type="link">Learn more</ThemedText>
@@ -79,18 +79,13 @@ export default function TabTwoScreen() {
       <Collapsible title="Animations">
         <ThemedText>
           This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText>{' '}
-          library to create a waving hand animation.
+          <ThemedText type="defaultSemiBold">modules/shared/components/HelloWave.tsx</ThemedText> component uses
+          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText> library
+          to create smooth animations.
         </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
+        <ExternalLink href="https://docs.swmansion.com/react-native-reanimated/">
+          <ThemedText type="link">Learn more</ThemedText>
+        </ExternalLink>
       </Collapsible>
     </ParallaxScrollView>
   );

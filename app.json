@@ -8,6 +8,7 @@
     "scheme": "siampgmobile",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "main": "./App.tsx",
     "ios": {
       "supportsTablet": true
     },
@@ -17,14 +18,11 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true
-    },
+    },    
     "web": {
-      "bundler": "metro",
-      "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router",
       [
         "expo-splash-screen",
         {
@@ -34,9 +32,6 @@
           "backgroundColor": "#ffffff"
         }
       ]
-    ],
-    "experiments": {
-      "typedRoutes": true
-    }
+    ]
   }
 }
