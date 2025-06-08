@@ -7,6 +7,7 @@ import RegisterScreen from '../modules/auth/screens/RegisterScreen';
 import ResetPasswordScreen from '../modules/auth/screens/ResetPasswordScreen';
 import VerificationScreen from '../modules/auth/screens/VerificationScreen';
 import VerifyEmailScreen from '../modules/auth/screens/VerifyEmailScreen';
+import ChangePasswordScreen from '../modules/auth/screens/ChangePasswordScreen';
 
 export type AuthStackParamList = {
   Login: undefined;
@@ -15,6 +16,7 @@ export type AuthStackParamList = {
   VerificationScreen: undefined;
   ResetPasswordScreen: undefined;
   VerifyEmailScreen: { email?: string } | undefined;
+  ChangePasswordScreen: undefined;
 };
 
 const Stack = createStackNavigator<AuthStackParamList>();
@@ -39,6 +41,7 @@ export default function AuthNavigator() {
       <Stack.Screen name="VerificationScreen" component={VerificationScreen} />
       <Stack.Screen name="ResetPasswordScreen" component={ResetPasswordScreen} />
       <Stack.Screen name="VerifyEmailScreen" component={VerifyEmailScreen} />
+      <Stack.Screen name="ChangePasswordScreen" component={ChangePasswordScreen} />
     </Stack.Navigator>
   );
 }
