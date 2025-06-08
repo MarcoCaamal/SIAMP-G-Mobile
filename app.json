@@ -17,8 +17,10 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
-    },    
+      "edgeToEdgeEnabled": true,
+      "permissions": [],
+      "package": "com.marcocaamal.SIAMPGMobile"
+    },
     "web": {
       "favicon": "./assets/images/favicon.png"
     },
@@ -30,6 +32,12 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
+        }
+      ],
+      [
+        "react-native-wifi-reborn",
+        {
+          "fineLocationPermission": false
         }
       ]
     ]
