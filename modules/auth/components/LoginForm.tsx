@@ -24,20 +24,43 @@ export default function LoginForm() {
     return newErrors;
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     const validationErrors = validate();
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
 
-    console.log({ email, password, remember });
-    
-    // Simular login exitoso y navegar a las tabs
-    // En una app real, aquí harías la autenticación con tu API
-    const parentNavigation = navigation.getParent();
-    if (parentNavigation) {
-      parentNavigation.navigate('Main');
+    // Aquí deberías llamar a tu API real de login
+    // Simulación de API para ejemplo
+    const result = await fakeLoginApi(email, password);
+    if (result.success) {
+      // Si el usuario está verificado, navega al Main (o lo que corresponda)
+      // Si no está verificado, navega a VerificationScreen
+      if (result.error === 'User is not verified') {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'VerificationScreen' }],
+        });
+      } else {
+        // Aquí iría la navegación al flujo principal de la app
+        // navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
+      }
+    } else {
+      setErrors({ email: 'Credenciales inválidas' });
     }
   };
+
+  // Simulación de API para ejemplo
+  async function fakeLoginApi(email: string, password: string) {
+    // Simula un usuario no verificado si el email contiene 'noverificado'
+    if (email.includes('noverificado')) {
+      return { success: false, error: 'User is not verified' };
+    }
+    // Simula login exitoso
+    if (email && password) {
+      return { success: true };
+    }
+    return { success: false, error: 'Invalid credentials' };
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
@@ -71,7 +94,7 @@ export default function LoginForm() {
         <View style={styles.field}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={styles.label}>Contraseña</Text>
-            <Pressable onPress={() => { /* lógica de recuperación */ }}>
+            <Pressable onPress={() => navigation.navigate('ResetPasswordScreen' as never)}>
               <Text style={styles.forgot}>¿Olvidaste tu contraseña?</Text>
             </Pressable>
           </View>

@@ -3,7 +3,6 @@ import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import React, { useState } from "react";
 import {
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -51,24 +50,17 @@ export default function RegisterForm() {
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
 
-    try {
-      const response = await register(userRegisterData);
-      
-      if (response._success) {
-        Alert.alert(
-          "Registro exitoso",
-          "Tu cuenta ha sido creada exitosamente.",
-          [
-            {
-              text: "OK",
-              onPress: () => navigation.navigate("Login")
-            }
-          ]
-        );
-      }
-    } catch (error: any) {
-      Alert.alert("Error en el registro", error.message || "Error desconocido");
-    }
+    // MODO DEMO: NAVEGA SIEMPRE A VERIFICACIÓN PARA VER EL DISEÑO
+    navigation.navigate("VerificationScreen" as never);
+    // Cuando tengas una API real, reemplaza la línea de arriba por:
+    // try {
+    //   const response = await register(userRegisterData);
+    //   if (response._success) {
+    //     navigation.navigate("VerificationScreen" as never);
+    //   }
+    // } catch (error: any) {
+    //   Alert.alert("Error en el registro", error.message || "Error desconocido");
+    // }
   };
 
   return (
@@ -137,6 +129,7 @@ export default function RegisterForm() {
           <Text style={styles.label}>Zona horaria</Text>
           <View style={styles.pickerWrapper}>
             <Picker
+              style={{ width: '100%', minHeight: 40 }}
               selectedValue={userRegisterData.timezone}
               onValueChange={(itemValue: string) => 
                 setUserRegisterData({ ...userRegisterData, timezone: itemValue })
@@ -238,6 +231,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 6,
     width: "100%",
+    minHeight: 48,
+    justifyContent: 'center',
+    marginBottom: 8,
   },
   checkboxRow: {
     flexDirection: "row",
