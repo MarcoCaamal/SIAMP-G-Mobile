@@ -94,7 +94,7 @@ export default function LoginForm() {
         <View style={styles.field}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={styles.label}>Contraseña</Text>
-            <Pressable onPress={() => { /* lógica de recuperación */ }}>
+            <Pressable onPress={() => navigation.navigate('ResetPasswordScreen' as never)}>
               <Text style={styles.forgot}>¿Olvidaste tu contraseña?</Text>
             </Pressable>
           </View>
