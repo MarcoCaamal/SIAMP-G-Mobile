@@ -2,12 +2,12 @@ import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
 import { Text, View } from 'react-native';
 
+import ChangePasswordScreen from '../modules/auth/screens/ChangePasswordScreen';
 import LoginScreen from '../modules/auth/screens/LoginScreen';
 import RegisterScreen from '../modules/auth/screens/RegisterScreen';
 import ResetPasswordScreen from '../modules/auth/screens/ResetPasswordScreen';
 import VerificationScreen from '../modules/auth/screens/VerificationScreen';
 import VerifyEmailScreen from '../modules/auth/screens/VerifyEmailScreen';
-import ChangePasswordScreen from '../modules/auth/screens/ChangePasswordScreen';
 
 export type AuthStackParamList = {
   Login: undefined;
