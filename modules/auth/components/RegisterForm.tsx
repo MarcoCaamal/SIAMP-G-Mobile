@@ -61,7 +61,7 @@ export default function RegisterForm() {
           [
             {
               text: "OK",
-              onPress: () => navigation.navigate("Login")
+              onPress: () => navigation.navigate("VerificationScreen" as never)
             }
           ]
         );
@@ -137,6 +137,7 @@ export default function RegisterForm() {
           <Text style={styles.label}>Zona horaria</Text>
           <View style={styles.pickerWrapper}>
             <Picker
+              style={{ width: '100%', minHeight: 40 }}
               selectedValue={userRegisterData.timezone}
               onValueChange={(itemValue: string) => 
                 setUserRegisterData({ ...userRegisterData, timezone: itemValue })
@@ -238,6 +239,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 6,
     width: "100%",
+    minHeight: 48,
+    justifyContent: 'center',
+    marginBottom: 8,
   },
   checkboxRow: {
     flexDirection: "row",

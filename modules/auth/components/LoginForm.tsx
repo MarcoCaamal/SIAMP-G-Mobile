@@ -24,20 +24,45 @@ export default function LoginForm() {
     return newErrors;
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     const validationErrors = validate();
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
 
-    console.log({ email, password, remember });
-    
-    // Simular login exitoso y navegar a las tabs
-    // En una app real, aquí harías la autenticación con tu API
-    const parentNavigation = navigation.getParent();
-    if (parentNavigation) {
-      parentNavigation.navigate('Main');
+    try {
+      // Aquí deberías llamar a tu API de login
+      // Simulación de respuesta del backend
+      const response = await fakeLoginApi(email, password);
+      if (response.success) {
+        // Login exitoso
+        const parentNavigation = navigation.getParent();
+        if (parentNavigation) {
+          parentNavigation.navigate('Main');
+        }
+      } else if (response.error === 'User is not verified') {
+        // Redirigir a pantalla de verificación si la cuenta no está verificada
+        navigation.navigate('VerificationScreen');
+      } else {
+        // Otro error
+        setErrors({ email: 'Credenciales incorrectas o error desconocido' });
+      }
+    } catch (error) {
+      setErrors({ email: 'Error de red o del servidor' });
     }
   };
+
+  // Simulación de API para ejemplo
+  async function fakeLoginApi(email: string, password: string) {
+    // Simula un usuario no verificado si el email contiene 'noverificado'
+    if (email.includes('noverificado')) {
+      return { success: false, error: 'User is not verified' };
+    }
+    // Simula login exitoso
+    if (email && password) {
+      return { success: true };
+    }
+    return { success: false, error: 'Invalid credentials' };
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
