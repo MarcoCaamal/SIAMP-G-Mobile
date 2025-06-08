@@ -4,6 +4,7 @@ import { Text, View } from 'react-native';
 
 import LoginScreen from '../modules/auth/screens/LoginScreen';
 import RegisterScreen from '../modules/auth/screens/RegisterScreen';
+import ResetPasswordScreen from '../modules/auth/screens/ResetPasswordScreen';
 import VerificationScreen from '../modules/auth/screens/VerificationScreen';
 
 export type AuthStackParamList = {
@@ -11,6 +12,7 @@ export type AuthStackParamList = {
   Register: undefined;
   Test: undefined;
   VerificationScreen: undefined;
+  ResetPasswordScreen: undefined;
 };
 
 const Stack = createStackNavigator<AuthStackParamList>();
@@ -33,6 +35,7 @@ export default function AuthNavigator() {
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
       <Stack.Screen name="VerificationScreen" component={VerificationScreen} />
+      <Stack.Screen name="ResetPasswordScreen" component={ResetPasswordScreen} />
     </Stack.Navigator>
   );
 }
