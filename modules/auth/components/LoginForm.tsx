@@ -1,13 +1,21 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import { StackNavigationProp } from '@react-navigation/stack';
+import React, { useEffect, useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { AuthStackParamList } from '../../../navigation/AuthNavigator';
+
+type LoginFormNavigationProp = StackNavigationProp<AuthStackParamList, 'Login'>;
 
 export default function LoginForm() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<LoginFormNavigationProp>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+
+  useEffect(() => {
+    console.log('LoginForm mounted successfully');
+  }, []);
 
   const validate = () => {
     const newErrors: { email?: string; password?: string } = {};
@@ -22,11 +30,17 @@ export default function LoginForm() {
     if (Object.keys(validationErrors).length > 0) return;
 
     console.log({ email, password, remember });
+    
+    // Simular login exitoso y navegar a las tabs
+    // En una app real, aquí harías la autenticación con tu API
+    const parentNavigation = navigation.getParent();
+    if (parentNavigation) {
+      parentNavigation.navigate('Main');
+    }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerText}>SIAMP-G</Text>
       </View>
@@ -57,7 +71,9 @@ export default function LoginForm() {
         <View style={styles.field}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={styles.label}>Contraseña</Text>
-            <Text style={styles.forgot} onPress={() => { /* lógica de recuperación */ }}>¿Olvidaste tu contraseña?</Text>
+            <Pressable onPress={() => { /* lógica de recuperación */ }}>
+              <Text style={styles.forgot}>¿Olvidaste tu contraseña?</Text>
+            </Pressable>
           </View>
           <TextInput
             style={styles.input}
@@ -73,15 +89,17 @@ export default function LoginForm() {
           <Switch value={remember} onValueChange={setRemember} />
           <Text>Recordar usuario</Text>
         </View>
-
+        
         <Pressable style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>Entrar</Text>
         </Pressable>
 
-        <Text style={styles.registerText}>
-          ¿No tienes cuenta?{' '}
-          <Text style={styles.link} onPress={() => navigation.navigate('Register' as never)}>Regístrate</Text>
-        </Text>
+        <View style={styles.registerContainer}>
+          <Text style={styles.registerText}>¿No tienes cuenta? </Text>
+          <Pressable onPress={() => navigation.navigate('Register')}>
+            <Text style={styles.link}>Regístrate</Text>
+          </Pressable>
+        </View>
       </View>
 
       <Text style={styles.footer}>© 2025 SIAMP-G</Text>
@@ -176,8 +194,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
   },
+  registerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   registerText: {
-    textAlign: 'center',
     fontSize: 14,
   },
   footer: {
@@ -189,13 +211,12 @@ const styles = StyleSheet.create({
   link: {
     color: '#428bca',
     textDecorationLine: 'underline',
-    fontSize: 12,
+    fontSize: 14,
   },
   forgot: {
     color: '#428bca',
     textDecorationLine: 'underline',
     fontSize: 12,
-    alignSelf: 'flex-end',
   },
   error: {
     color: '#cc0000',
