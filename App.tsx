@@ -3,9 +3,10 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { Text, View } from 'react-native';
+import { Text } from 'react-native';
 import 'react-native-gesture-handler';
 import 'react-native-reanimated';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import AuthNavigator from './navigation/AuthNavigator';
 import TabNavigator from './navigation/TabNavigator';
@@ -25,21 +26,22 @@ export default function App() {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
-
   if (!loaded) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <Text>Loading fonts...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Auth" screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Auth" component={AuthNavigator} />
-        <Stack.Screen name="Main" component={TabNavigator} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Auth" screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Auth" component={AuthNavigator} />
+          <Stack.Screen name="Main" component={TabNavigator} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }
