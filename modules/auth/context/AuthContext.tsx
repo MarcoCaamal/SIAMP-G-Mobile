@@ -1,5 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { API_CONFIG } from '../../shared/config/api.config';
+import { tokenRefreshService } from '../services/tokenRefreshService';
 import { AuthState, User } from '../types/auth.types';
 
 interface AuthContextType {
@@ -11,12 +13,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const STORAGE_KEYS = {
-  ACCESS_TOKEN: '@siamp_access_token',
-  REFRESH_TOKEN: '@siamp_refresh_token',
-  USER: '@siamp_user',
-};
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
@@ -26,20 +22,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading: false,
   });
   const [isLoading, setIsLoading] = useState(true);
-
   // Cargar datos del almacenamiento al iniciar la app
   useEffect(() => {
     loadStoredAuth();
+  }, []);
+  // Configurar el callback para cuando los tokens expiren
+  useEffect(() => {
+    // Configurar callback para cuando el token expire
+    tokenRefreshService.setOnTokenExpiredCallback(() => {
+      logout();
+    });
   }, []);
 
   const loadStoredAuth = async () => {
     try {
       setIsLoading(true);
-      
-      const [accessToken, refreshToken, userString] = await Promise.all([
-        AsyncStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN),
-        AsyncStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN),
-        AsyncStorage.getItem(STORAGE_KEYS.USER),
+        const [accessToken, refreshToken, userString] = await Promise.all([
+        AsyncStorage.getItem(API_CONFIG.STORAGE_KEYS.ACCESS_TOKEN),
+        AsyncStorage.getItem(API_CONFIG.STORAGE_KEYS.REFRESH_TOKEN),
+        AsyncStorage.getItem(API_CONFIG.STORAGE_KEYS.USER),
       ]);
 
       if (accessToken && refreshToken && userString) {
@@ -63,12 +64,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const login = async (accessToken: string, refreshToken: string, user: User) => {
-    try {
-      // Guardar en AsyncStorage
+    try {      // Guardar en AsyncStorage
       await Promise.all([
-        AsyncStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken),
-        AsyncStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken),
-        AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user)),
+        AsyncStorage.setItem(API_CONFIG.STORAGE_KEYS.ACCESS_TOKEN, accessToken),
+        AsyncStorage.setItem(API_CONFIG.STORAGE_KEYS.REFRESH_TOKEN, refreshToken),
+        AsyncStorage.setItem(API_CONFIG.STORAGE_KEYS.USER, JSON.stringify(user)),
       ]);
 
       // Actualizar estado
@@ -83,8 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Error saving auth data:', error);
       throw error;
     }
-  };
-
+  };  
   const logout = async () => {
     try {
       // Limpiar AsyncStorage
@@ -102,12 +101,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Error during logout:', error);
     }
   };
-
   const clearStorage = async () => {
     await Promise.all([
-      AsyncStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN),
-      AsyncStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN),
-      AsyncStorage.removeItem(STORAGE_KEYS.USER),
+      AsyncStorage.removeItem(API_CONFIG.STORAGE_KEYS.ACCESS_TOKEN),
+      AsyncStorage.removeItem(API_CONFIG.STORAGE_KEYS.REFRESH_TOKEN),
+      AsyncStorage.removeItem(API_CONFIG.STORAGE_KEYS.USER),
     ]);
   };
 

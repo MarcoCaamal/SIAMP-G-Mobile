@@ -1,12 +1,10 @@
-import { environment } from '../../shared/constants/environment';
+import { API_URLS } from '../../shared/config/api.config';
 import { AuthCredentials, AuthResult, UserRegisterData } from '../types/auth.types';
 
 class AuthService {
-  private baseUrl = environment.API_BASE_URL;
   async register(userData: UserRegisterData): Promise<AuthResult> {
     try {
-      console.log(this.baseUrl)
-      const response = await fetch(`${this.baseUrl}/api/auth/register`, {
+      const response = await fetch(API_URLS.AUTH.REGISTER, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -39,10 +37,9 @@ class AuthService {
         }
       };
     }
-  }  
-  async login(credentials: AuthCredentials): Promise<AuthResult> {
+  }    async login(credentials: AuthCredentials): Promise<AuthResult> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/auth/login`, {
+      const response = await fetch(API_URLS.AUTH.LOGIN, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -99,7 +96,7 @@ class AuthService {
 
   async sendVerificationCode(email: string): Promise<AuthResult> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/auth/send-verification-code`, {
+      const response = await fetch(API_URLS.AUTH.SEND_VERIFICATION_CODE, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -136,7 +133,7 @@ class AuthService {
 
   async verifyEmailCode(code: string): Promise<AuthResult> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/auth/verify-email-code`, {
+      const response = await fetch(API_URLS.AUTH.VERIFY_EMAIL_CODE, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
