@@ -3,13 +3,15 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import React, { useEffect, useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { AuthStackParamList } from '../../../navigation/AuthNavigator';
+import { useAuthContext } from '../context/AuthContext';
 import { useLogin } from '../hooks/useAuth';
 
 type LoginFormNavigationProp = StackNavigationProp<AuthStackParamList, 'Login'>;
 
 export default function LoginForm() {
   const navigation = useNavigation<LoginFormNavigationProp>();
-  const { login, loading } = useLogin();
+  const { login: apiLogin, loading } = useLogin();
+  const { login: saveAuth } = useAuthContext();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -24,21 +26,28 @@ export default function LoginForm() {
     if (!email.trim()) newErrors.email = 'El correo es obligatorio';
     if (!password) newErrors.password = 'La contraseña es obligatoria';
     return newErrors;
-  };
-  const handleLogin = async () => {
+  };  const handleLogin = async () => {
     const validationErrors = validate();
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
 
     try {
-      const result = await login({ email: email.trim(), password });
+      const result = await apiLogin({ email: email.trim(), password });
       
-      if (result._success) {
+      if (result._success && result._value) {
+        // Guardar datos de autenticación en el contexto
+        await saveAuth(
+          result._value.accessToken,
+          result._value.refreshToken,
+          result._value.user
+        );
+        
         // Login exitoso - navegar al TabNavigator (HomeScreen)
         navigation.reset({
           index: 0,
           routes: [{ name: 'TabNavigator' }],
-        });      } else {
+        });
+      } else {
         // Error en el login - mostrar el mensaje de error
         const errorMessage = result._error?.message || 'Error desconocido en el login';
         const errorCode = result._error?.code;
