@@ -1,75 +1,215 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '../components/HelloWave';
-import ParallaxScrollView from '../components/ParallaxScrollView';
-import { ThemedText } from '../components/ThemedText';
-import { ThemedView } from '../components/ThemedView';
+import React from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('../../../assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">modules/shared/screens/HomeScreen.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}{' '}
-          </ThemedText>
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>¡Bienvenido a SIAMP-G!</Text>
+          <Text style={styles.headerSubtitle}>Sistema Inteligente de Automatización y Monitoreo para Plantas</Text>
+        </View>
+
+        <View style={styles.statsContainer}>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>2</Text>
+            <Text style={styles.statLabel}>Dispositivos</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>3</Text>
+            <Text style={styles.statLabel}>Programaciones</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>15</Text>
+            <Text style={styles.statLabel}>Días Activo</Text>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Estado del Sistema</Text>
+          <View style={styles.systemCard}>
+            <View style={styles.systemStatus}>
+              <View style={[styles.statusDot, styles.statusOnline]}></View>
+              <Text style={styles.systemStatusText}>Sistema Operativo</Text>
+            </View>
+            <Text style={styles.systemInfo}>Última actualización: Hace 2 minutos</Text>
+            <Text style={styles.systemInfo}>Próximo riego: Hoy 18:00 PM</Text>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Actividad Reciente</Text>
+          
+          <View style={styles.activityCard}>
+            <Text style={styles.activityTime}>15:30</Text>
+            <Text style={styles.activityText}>Riego automático completado</Text>
+            <Text style={styles.activityDetail}>Sensor #001 - 15 minutos</Text>
+          </View>
+          
+          <View style={styles.activityCard}>
+            <Text style={styles.activityTime}>12:00</Text>
+            <Text style={styles.activityText}>Datos de humedad sincronizados</Text>
+            <Text style={styles.activityDetail}>Todos los sensores</Text>
+          </View>
+          
+          <View style={styles.activityCard}>
+            <Text style={styles.activityTime}>09:45</Text>
+            <Text style={styles.activityText}>Dispositivo conectado</Text>
+            <Text style={styles.activityDetail}>Sensor #002</Text>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Acceso Rápido</Text>
+          <View style={styles.quickActions}>
+            <View style={styles.actionButton}>
+              <Text style={styles.actionText}>Riego Manual</Text>
+            </View>
+            <View style={styles.actionButton}>
+              <Text style={styles.actionText}>Ver Sensores</Text>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  content: {
+    padding: 16,
+  },
+  header: {
+    marginBottom: 24,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#130065',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+    gap: 12,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: '#8EC5FC',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#fff',
+    opacity: 0.9,
+    textAlign: 'center',
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 12,
+  },
+  systemCard: {
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  systemStatus: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  statusDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 8,
+  },
+  statusOnline: {
+    backgroundColor: '#28a745',
+  },
+  systemStatusText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  systemInfo: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 4,
+  },
+  activityCard: {
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#8EC5FC',
+  },
+  activityTime: {
+    fontSize: 12,
+    color: '#8EC5FC',
+    fontWeight: '600',
+  },
+  activityText: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  activityDetail: {
+    fontSize: 12,
+    color: '#666',
+  },
+  quickActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionButton: {
+    flex: 1,
+    backgroundColor: '#8EC5FC',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  actionText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
   },
 });

@@ -14,10 +14,12 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  status: string;
 }
 
 export interface AuthResponse {
-  token: string;
+  accessToken: string;
+  refreshToken: string;
   user: User;
 }
 
@@ -27,12 +29,14 @@ export interface AuthResult {
   _error?: {
     message: string;
     code?: string;
+    statusCode?: number;
   };
 }
 
 export interface AuthState {
   user: User | null;
-  token: string | null;
+  accessToken: string | null;
+  refreshToken: string | null;
   isAuthenticated: boolean;
   loading: boolean;
 }

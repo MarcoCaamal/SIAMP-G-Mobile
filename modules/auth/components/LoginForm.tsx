@@ -3,65 +3,65 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import React, { useEffect, useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { AuthStackParamList } from '../../../navigation/AuthNavigator';
+import { useLogin } from '../hooks/useAuth';
 
 type LoginFormNavigationProp = StackNavigationProp<AuthStackParamList, 'Login'>;
 
 export default function LoginForm() {
   const navigation = useNavigation<LoginFormNavigationProp>();
+  const { login, loading } = useLogin();
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     console.log('LoginForm mounted successfully');
   }, []);
-
   const validate = () => {
-    const newErrors: { email?: string; password?: string } = {};
+    const newErrors: { [key: string]: string } = {};
     if (!email.trim()) newErrors.email = 'El correo es obligatorio';
     if (!password) newErrors.password = 'La contraseña es obligatoria';
     return newErrors;
   };
-
   const handleLogin = async () => {
     const validationErrors = validate();
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
 
-    // Aquí deberías llamar a tu API real de login
-    // Simulación de API para ejemplo
-    const result = await fakeLoginApi(email, password);
-    if (result.success) {
-      // Si el usuario está verificado, navega al Main (o lo que corresponda)
-      // Si no está verificado, navega a VerificationScreen
-      if (result.error === 'User is not verified') {
+    try {
+      const result = await login({ email: email.trim(), password });
+      
+      if (result._success) {
+        // Login exitoso - navegar al TabNavigator (HomeScreen)
         navigation.reset({
           index: 0,
-          routes: [{ name: 'VerificationScreen' }],
-        });
-      } else {
-        // Aquí iría la navegación al flujo principal de la app
-        // navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
+          routes: [{ name: 'TabNavigator' }],
+        });      } else {
+        // Error en el login - mostrar el mensaje de error
+        const errorMessage = result._error?.message || 'Error desconocido en el login';
+        const errorCode = result._error?.code;
+        
+        // Si el error indica que el usuario no está verificado
+        if (errorMessage.toLowerCase().includes('not verified') || 
+            errorMessage.toLowerCase().includes('no verificado') ||
+            errorCode === 'AUTH_005' || // Código específico para usuario no verificado
+            errorCode === 'USER_NOT_VERIFIED') {
+          navigation.navigate('VerificationScreen', { email: email.trim() });
+        } else {
+          setErrors({ 
+            api: errorMessage
+          });
+        }
       }
-    } else {
-      setErrors({ email: 'Credenciales inválidas' });
+    } catch (error) {
+      // Error de red u otro error inesperado
+      setErrors({ 
+        api: 'Error de conexión. Verifica tu conexión a internet.' 
+      });
     }
   };
-
-  // Simulación de API para ejemplo
-  async function fakeLoginApi(email: string, password: string) {
-    // Simula un usuario no verificado si el email contiene 'noverificado'
-    if (email.includes('noverificado')) {
-      return { success: false, error: 'User is not verified' };
-    }
-    // Simula login exitoso
-    if (email && password) {
-      return { success: true };
-    }
-    return { success: false, error: 'Invalid credentials' };
-  }
-
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <View style={styles.header}>
@@ -106,15 +106,27 @@ export default function LoginForm() {
             onChangeText={setPassword}
           />
           {errors.password && <Text style={styles.error}>{errors.password}</Text>}
-        </View>
-
+        </View>        
         <View style={styles.checkboxRow}>
           <Switch value={remember} onValueChange={setRemember} />
           <Text>Recordar usuario</Text>
         </View>
+
+        {/* Error general de la API */}
+        {errors.api && (
+          <View style={styles.apiErrorContainer}>
+            <Text style={styles.apiError}>{errors.api}</Text>
+          </View>
+        )}
         
-        <Pressable style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Entrar</Text>
+        <Pressable 
+          style={[styles.button, loading && styles.buttonDisabled]} 
+          onPress={handleLogin}
+          disabled={loading}
+        >
+          <Text style={styles.buttonText}>
+            {loading ? 'Ingresando...' : 'Entrar'}
+          </Text>
         </Pressable>
 
         <View style={styles.registerContainer}>
@@ -201,8 +213,7 @@ const styles = StyleSheet.create({
     gap: 10,
     maxWidth: 340,
     width: '100%',
-  },
-  button: {
+  },  button: {
     backgroundColor: '#8EC5FC',
     paddingVertical: 12,
     paddingHorizontal: 60,
@@ -211,6 +222,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     width: '100%',
     maxWidth: 340,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {
     color: 'white',
@@ -240,11 +254,25 @@ const styles = StyleSheet.create({
     color: '#428bca',
     textDecorationLine: 'underline',
     fontSize: 12,
-  },
-  error: {
+  },  error: {
     color: '#cc0000',
     fontSize: 12,
     marginTop: 4,
     marginBottom: 4,
+  },
+  apiErrorContainer: {
+    backgroundColor: '#ffebee',
+    borderColor: '#cc0000',
+    borderWidth: 1,
+    borderRadius: 4,
+    padding: 10,
+    marginBottom: 16,
+    width: '100%',
+    maxWidth: 340,
+  },
+  apiError: {
+    color: '#cc0000',
+    fontSize: 14,
+    textAlign: 'center',
   },
 });

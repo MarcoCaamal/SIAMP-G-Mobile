@@ -1,5 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useRef, useState } from 'react';
 import {
   Alert,
@@ -11,9 +11,17 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSendVerificationCode, useVerifyEmailCode } from '../hooks/useAuth';
 
 const VerificationScreen = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const { sendVerificationCode, loading: resendLoading } = useSendVerificationCode();
+  const { verifyEmailCode, loading: verifyLoading } = useVerifyEmailCode();
+  
+  // Get email from route params or use default
+  const userEmail = (route.params as any)?.email || 'example@correo.com';
+  
   const [code, setCode] = useState<string[]>(['', '', '', '']);
   const inputRefs = useRef<Array<TextInput | null>>([]);
 
@@ -33,20 +41,66 @@ const VerificationScreen = () => {
       inputRefs.current[index - 1]?.focus();
     }
   };
-
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     const fullCode = code.join('');
     if (fullCode.length === 4) {
-      // Aquí puedes agregar la lógica de verificación
-      Alert.alert('Código ingresado', `Tu código es: ${fullCode}`);
+      try {
+        const result = await verifyEmailCode(fullCode);
+        
+        if (result._success) {
+          Alert.alert(
+            'Verificación exitosa', 
+            'Tu cuenta ha sido verificada correctamente',
+            [
+              {
+                text: 'Continuar',
+                onPress: () => {                  // Navegar al dashboard o pantalla principal
+                  // Por ahora navegar de vuelta al login
+                  navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'Login' as any }],
+                  });
+                }
+              }
+            ]
+          );
+        } else {
+          Alert.alert(
+            'Código inválido', 
+            result._error?.message || 'El código ingresado es incorrecto. Verifica e intenta nuevamente.'
+          );
+        }
+      } catch (error) {
+        Alert.alert(
+          'Error de conexión', 
+          'Verifica tu conexión a internet e intenta nuevamente.'
+        );
+      }
     } else {
       Alert.alert('Error', 'Por favor ingresa el código completo de 4 dígitos');
     }
   };
-
-  const handleResendCode = () => {
-    Alert.alert('Código reenviado', 'Se ha enviado un nuevo código a tu correo');
-    // Aquí puedes agregar la lógica para reenviar el código
+  const handleResendCode = async () => {
+    try {
+      const result = await sendVerificationCode(userEmail);
+      
+      if (result._success) {
+        Alert.alert(
+          'Código reenviado', 
+          'Se ha enviado un nuevo código de verificación a tu correo electrónico'
+        );
+      } else {
+        Alert.alert(
+          'Error', 
+          result._error?.message || 'No se pudo reenviar el código. Intenta nuevamente.'
+        );
+      }
+    } catch (error) {
+      Alert.alert(
+        'Error de conexión', 
+        'Verifica tu conexión a internet e intenta nuevamente.'
+      );
+    }
   };
 
   return (
@@ -80,11 +134,10 @@ const VerificationScreen = () => {
           <MaterialIcons name="send" size={32} color="#666" />
         </View>
         {/* Title */}
-        <Text style={styles.title}>Verifica tu cuenta</Text>
-        {/* Subtitle */}
+        <Text style={styles.title}>Verifica tu cuenta</Text>        {/* Subtitle */}
         <Text style={styles.subtitle}>
           Por favor ingresa el código de 4 dígitos{"\n"}
-          enviado al correo example@correo.com
+          enviado al correo {userEmail}
         </Text>
         {/* Code Input */}
         <View style={styles.codeContainer}>
@@ -103,17 +156,27 @@ const VerificationScreen = () => {
               returnKeyType="next"
             />
           ))}
-        </View>
-        {/* Resend Link */}
+        </View>        {/* Resend Link */}
         <View style={styles.resendContainer}>
           <Text style={styles.resendText}>¿No recibiste el correo? </Text>
-          <TouchableOpacity onPress={handleResendCode}>
-            <Text style={styles.resendLink}>Reenviar</Text>
+          <TouchableOpacity 
+            onPress={handleResendCode}
+            disabled={resendLoading}
+            style={[styles.resendButton, resendLoading && styles.resendButtonDisabled]}
+          >
+            <Text style={[styles.resendLink, resendLoading && styles.resendLinkDisabled]}>
+              {resendLoading ? 'Reenviando...' : 'Reenviar'}
+            </Text>
           </TouchableOpacity>
-        </View>
-        {/* Confirm Button */}
-        <TouchableOpacity style={styles.confirmButton} onPress={handleConfirm}>
-          <Text style={styles.confirmButtonText}>Confirmar</Text>
+        </View>        {/* Confirm Button */}
+        <TouchableOpacity 
+          style={[styles.confirmButton, verifyLoading && styles.confirmButtonDisabled]} 
+          onPress={handleConfirm}
+          disabled={verifyLoading}
+        >
+          <Text style={styles.confirmButtonText}>
+            {verifyLoading ? 'Verificando...' : 'Confirmar'}
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -195,19 +258,30 @@ const styles = StyleSheet.create({
   resendText: {
     fontSize: 14,
     color: '#666',
-  },
-  resendLink: {
+  },  resendLink: {
     fontSize: 14,
     color: '#5B9BD5',
     fontWeight: '500',
   },
-  confirmButton: {
+  resendButton: {
+    padding: 4,
+  },
+  resendButtonDisabled: {
+    opacity: 0.5,
+  },
+  resendLinkDisabled: {
+    color: '#999',
+  },  confirmButton: {
     backgroundColor: '#5B9BD5',
     paddingVertical: 16,
     paddingHorizontal: 80,
     borderRadius: 8,
     width: '100%',
     alignItems: 'center',
+  },
+  confirmButtonDisabled: {
+    opacity: 0.6,
+    backgroundColor: '#999',
   },
   confirmButtonText: {
     color: 'white',
