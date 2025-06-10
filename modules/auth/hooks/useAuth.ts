@@ -53,3 +53,55 @@ export const useLogin = () => {
     error,
   };
 };
+
+export const useSendVerificationCode = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const sendVerificationCode = async (email: string) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await authService.sendVerificationCode(email);
+      return response;
+    } catch (err: any) {
+      setError(err.message || 'Error al reenviar el código');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    sendVerificationCode,
+    loading,
+    error,
+  };
+};
+
+export const useVerifyEmailCode = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const verifyEmailCode = async (code: string) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await authService.verifyEmailCode(code);
+      return response;
+    } catch (err: any) {
+      setError(err.message || 'Error al verificar el código');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    verifyEmailCode,
+    loading,
+    error,
+  };
+};

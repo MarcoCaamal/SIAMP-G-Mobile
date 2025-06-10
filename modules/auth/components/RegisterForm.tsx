@@ -9,13 +9,16 @@ import {
   Switch,
   Text,
   TextInput,
-  View
+  View,
 } from "react-native";
 import { AuthStackParamList } from "../../../navigation/AuthNavigator";
 import { useRegister } from "../hooks/useAuth";
 import { UserRegisterData } from "../types/auth.types";
 
-type RegisterFormNavigationProp = StackNavigationProp<AuthStackParamList, 'Register'>;
+type RegisterFormNavigationProp = StackNavigationProp<
+  AuthStackParamList,
+  "Register"
+>;
 
 export default function RegisterForm() {
   const navigation = useNavigation<RegisterFormNavigationProp>();
@@ -33,9 +36,12 @@ export default function RegisterForm() {
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
-    if (!userRegisterData.name.trim()) newErrors.name = "El nombre es obligatorio";
-    if (!userRegisterData.email.trim()) newErrors.email = "El correo es obligatorio";
-    if (!userRegisterData.password) newErrors.password = "La contraseña es obligatoria";
+    if (!userRegisterData.name.trim())
+      newErrors.name = "El nombre es obligatorio";
+    if (!userRegisterData.email.trim())
+      newErrors.email = "El correo es obligatorio";
+    if (!userRegisterData.password)
+      newErrors.password = "La contraseña es obligatoria";
     else if (userRegisterData.password.length < 6)
       newErrors.password = "La contraseña debe tener al menos 6 caracteres";
     if (!confirm) newErrors.confirm = "Debes confirmar la contraseña";
@@ -44,23 +50,27 @@ export default function RegisterForm() {
     if (!agree) newErrors.agree = "Debes aceptar los términos y condiciones";
     return newErrors;
   };
-
   const handleRegister = async () => {
     const validationErrors = validate();
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
 
-    // MODO DEMO: NAVEGA SIEMPRE A VERIFICACIÓN PARA VER EL DISEÑO
-    navigation.navigate("VerificationScreen" as never);
-    // Cuando tengas una API real, reemplaza la línea de arriba por:
-    // try {
-    //   const response = await register(userRegisterData);
-    //   if (response._success) {
-    //     navigation.navigate("VerificationScreen" as never);
-    //   }
-    // } catch (error: any) {
-    //   Alert.alert("Error en el registro", error.message || "Error desconocido");
-    // }
+    try {
+      const result = await register(userRegisterData);      if (result._success) {
+        // Registro exitoso - navegar a verificación con el email del usuario
+        navigation.navigate("VerificationScreen", { email: userRegisterData.email });
+      } else {
+        // Error en el registro - mostrar el mensaje de error
+        setErrors({
+          api: result._error?.message || "Error desconocido en el registro",
+        });
+      }
+    } catch (error) {
+      // Error de red u otro error inesperado
+      setErrors({
+        api: "Error de conexión. Verifica tu conexión a internet.",
+      });
+    }
   };
 
   return (
@@ -74,18 +84,18 @@ export default function RegisterForm() {
 
       <View style={styles.card}>
         <Text style={styles.title}>Crear Cuenta</Text>
-
         <View style={styles.field}>
           <Text style={styles.label}>Nombre completo</Text>
           <TextInput
             style={styles.input}
             placeholder="Ingresa tu nombre completo"
             value={userRegisterData.name}
-            onChangeText={(text) => setUserRegisterData({ ...userRegisterData, name: text })}
+            onChangeText={(text) =>
+              setUserRegisterData({ ...userRegisterData, name: text })
+            }
           />
           {errors.name && <Text style={styles.error}>{errors.name}</Text>}
         </View>
-
         <View style={styles.field}>
           <Text style={styles.label}>Correo electrónico</Text>
           <TextInput
@@ -93,12 +103,13 @@ export default function RegisterForm() {
             placeholder="ejemplo@email.com"
             keyboardType="email-address"
             value={userRegisterData.email}
-            onChangeText={(text) => setUserRegisterData({ ...userRegisterData, email: text })}
+            onChangeText={(text) =>
+              setUserRegisterData({ ...userRegisterData, email: text })
+            }
             autoCapitalize="none"
           />
           {errors.email && <Text style={styles.error}>{errors.email}</Text>}
         </View>
-
         <View style={styles.field}>
           <Text style={styles.label}>Contraseña</Text>
           <TextInput
@@ -106,13 +117,14 @@ export default function RegisterForm() {
             placeholder="Crea una contraseña"
             secureTextEntry
             value={userRegisterData.password}
-            onChangeText={(text) => setUserRegisterData({ ...userRegisterData, password: text })}
+            onChangeText={(text) =>
+              setUserRegisterData({ ...userRegisterData, password: text })
+            }
           />
           {errors.password && (
             <Text style={styles.error}>{errors.password}</Text>
           )}
         </View>
-
         <View style={styles.field}>
           <Text style={styles.label}>Confirmar contraseña</Text>
           <TextInput
@@ -124,15 +136,17 @@ export default function RegisterForm() {
           />
           {errors.confirm && <Text style={styles.error}>{errors.confirm}</Text>}
         </View>
-
         <View style={styles.field}>
           <Text style={styles.label}>Zona horaria</Text>
           <View style={styles.pickerWrapper}>
             <Picker
-              style={{ width: '100%', minHeight: 40 }}
+              style={{ width: "100%", minHeight: 40 }}
               selectedValue={userRegisterData.timezone}
-              onValueChange={(itemValue: string) => 
-                setUserRegisterData({ ...userRegisterData, timezone: itemValue })
+              onValueChange={(itemValue: string) =>
+                setUserRegisterData({
+                  ...userRegisterData,
+                  timezone: itemValue,
+                })
               }
             >
               <Picker.Item label="UTC -03:00 Buenos Aires" value="UTC-03:00" />
@@ -141,7 +155,6 @@ export default function RegisterForm() {
             </Picker>
           </View>
         </View>
-
         <View style={styles.checkboxRow}>
           <Switch value={agree} onValueChange={setAgree} />
           <Text style={styles.termsText}>
@@ -149,9 +162,14 @@ export default function RegisterForm() {
           </Text>
         </View>
         {errors.agree && <Text style={styles.error}>{errors.agree}</Text>}
-
-        <Pressable 
-          style={[styles.button, loading && styles.buttonDisabled]} 
+        {/* Error general de la API */}
+        {errors.api && (
+          <View style={styles.apiErrorContainer}>
+            <Text style={styles.apiError}>{errors.api}</Text>
+          </View>
+        )}
+        <Pressable
+          style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleRegister}
           disabled={loading}
         >
@@ -159,10 +177,10 @@ export default function RegisterForm() {
             {loading ? "Registrando..." : "Registrarse"}
           </Text>
         </Pressable>
-        
         <Pressable onPress={() => navigation.navigate("Login")}>
           <Text style={styles.loginText}>
-            ¿Ya tienes una cuenta? <Text style={styles.link}>Inicia sesión</Text>
+            ¿Ya tienes una cuenta?{" "}
+            <Text style={styles.link}>Inicia sesión</Text>
           </Text>
         </Pressable>
       </View>
@@ -181,10 +199,10 @@ const styles = StyleSheet.create({
     minHeight: "100%",
   },
   header: {
-    backgroundColor: '#8EC5FC',
+    backgroundColor: "#8EC5FC",
     paddingTop: 40,
     paddingBottom: 10,
-    alignItems: 'center',
+    alignItems: "center",
   },
   headerText: {
     fontSize: 18,
@@ -193,23 +211,23 @@ const styles = StyleSheet.create({
   },
   card: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 30,
     paddingHorizontal: 20,
-    width: '100%',
+    width: "100%",
     maxWidth: 400,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   title: {
     fontSize: 22,
-    fontWeight: 'bold',
-    color: '#130065',
+    fontWeight: "bold",
+    color: "#130065",
     marginBottom: 24,
-    textAlign: 'center',
+    textAlign: "center",
   },
   field: {
     marginBottom: 16,
-    width: '100%',
+    width: "100%",
     maxWidth: 340,
   },
   label: {
@@ -232,7 +250,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     width: "100%",
     minHeight: 48,
-    justifyContent: 'center',
+    justifyContent: "center",
     marginBottom: 8,
   },
   checkboxRow: {
@@ -285,5 +303,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 4,
     marginBottom: 4,
+  },
+  apiErrorContainer: {
+    backgroundColor: "#ffebee",
+    borderColor: "#f44336",
+    borderWidth: 1,
+    borderRadius: 6,
+    padding: 12,
+    marginBottom: 16,
+    width: "100%",
+    maxWidth: 340,
+  },
+  apiError: {
+    color: "#c62828",
+    fontSize: 14,
+    textAlign: "center",
+    fontWeight: "500",
   },
 });
