@@ -1,8 +1,8 @@
-import { httpInterceptor } from '../../shared/services/httpInterceptor';
+import { axiosService } from '../../shared/utils/axios';
 
 class TokenRefreshService {
   setOnTokenExpiredCallback(callback: () => void) {
-    httpInterceptor.setOnTokenExpiredCallback(callback);
+    axiosService.setOnTokenExpiredCallback(callback);
   }
 }
 

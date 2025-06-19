@@ -9,7 +9,6 @@ import RegisterScreen from '../modules/auth/screens/RegisterScreen';
 import ResetPasswordScreen from '../modules/auth/screens/ResetPasswordScreen';
 import VerificationScreen from '../modules/auth/screens/VerificationScreen';
 import VerifyEmailScreen from '../modules/auth/screens/VerifyEmailScreen';
-import WifiScanScreen from '../modules/devices/screens/WifiScanScreen';
 import TabNavigator from './TabNavigator';
 
 export type AuthStackParamList = {
@@ -41,7 +40,6 @@ export default function AuthNavigator() {
       screenOptions={{ headerShown: false }}
     >
       <Stack.Screen name="TabNavigator" component={TabNavigator} />
-      <Stack.Screen name="WifiScan" component={WifiScanScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
       <Stack.Screen name="VerificationScreen" component={VerificationScreen} />

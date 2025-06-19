@@ -1,5 +1,5 @@
-import { API_URLS } from '../../shared/config/api.config';
-import { httpInterceptor } from '../../shared/services/httpInterceptor';
+import { API_CONFIG } from '../../shared/config/api.config';
+import axios from '../../shared/utils/axios';
 
 export interface UserProfile {
   id: string;
@@ -56,11 +56,10 @@ export interface ChangePasswordData {
   newPassword: string;
 }
 
-class UserService {
-  async getUserProfile(): Promise<{ isSuccess: boolean; value?: UserProfile; error?: any }> {
+class UserService {  async getUserProfile(): Promise<{ isSuccess: boolean; value?: UserProfile; error?: any }> {
     try {
-      const response = await httpInterceptor.authenticatedFetch(API_URLS.USERS.PROFILE);
-      const data = await response.json();
+      const response = await axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.USERS.PROFILE}`);
+      const data = response.data;
       
       if (data._isSuccess) {
         return { isSuccess: true, value: data._value };
@@ -69,20 +68,16 @@ class UserService {
       }
     } catch (error: any) {
       console.error('Error getting user profile:', error);
-      if (error.message === 'UNAUTHORIZED') {
+      if (error.response?.status === 401) {
         return { isSuccess: false, error: { message: 'UNAUTHORIZED' } };
       }
-      return { isSuccess: false, error: 'Error al obtener el perfil' };
+      return { isSuccess: false, error: error.response?.data?.message || 'Error al obtener el perfil' };
     }
   }
-
   async updateUserProfile(profileData: UpdateProfileData): Promise<{ isSuccess: boolean; value?: UserProfile; error?: any; message?: string }> {
     try {
-      const response = await httpInterceptor.authenticatedFetch(API_URLS.USERS.PROFILE, {
-        method: 'PUT',
-        body: JSON.stringify(profileData),
-      });
-      const data = await response.json();
+      const response = await axios.put(`${API_CONFIG.BASE_URL}${API_CONFIG.USERS.PROFILE}`, profileData);
+      const data = response.data;
       
       if (data._isSuccess) {
         return { 
@@ -95,20 +90,16 @@ class UserService {
       }
     } catch (error: any) {
       console.error('Error updating user profile:', error);
-      if (error.message === 'UNAUTHORIZED') {
+      if (error.response?.status === 401) {
         return { isSuccess: false, error: { message: 'UNAUTHORIZED' } };
       }
-      return { isSuccess: false, error: 'Error al actualizar el perfil' };
+      return { isSuccess: false, error: error.response?.data?.message || 'Error al actualizar el perfil' };
     }
   }
-
   async updateNotificationPreferences(preferences: UpdateNotificationPreferences): Promise<{ isSuccess: boolean; value?: any; error?: any; message?: string }> {
     try {
-      const response = await httpInterceptor.authenticatedFetch(API_URLS.USERS.NOTIFICATIONS, {
-        method: 'PUT',
-        body: JSON.stringify(preferences),
-      });
-      const data = await response.json();
+      const response = await axios.put(`${API_CONFIG.BASE_URL}${API_CONFIG.USERS.NOTIFICATIONS}`, preferences);
+      const data = response.data;
       
       if (data._isSuccess) {
         return { 
@@ -121,20 +112,16 @@ class UserService {
       }
     } catch (error: any) {
       console.error('Error updating notification preferences:', error);
-      if (error.message === 'UNAUTHORIZED') {
+      if (error.response?.status === 401) {
         return { isSuccess: false, error: { message: 'UNAUTHORIZED' } };
       }
-      return { isSuccess: false, error: 'Error al actualizar las preferencias' };
+      return { isSuccess: false, error: error.response?.data?.message || 'Error al actualizar las preferencias' };
     }
   }
-
   async changePassword(passwordData: ChangePasswordData): Promise<{ isSuccess: boolean; value?: { message: string }; error?: any }> {
     try {
-      const response = await httpInterceptor.authenticatedFetch(API_URLS.USERS.CHANGE_PASSWORD, {
-        method: 'POST',
-        body: JSON.stringify(passwordData),
-      });
-      const data = await response.json();
+      const response = await axios.post(`${API_CONFIG.BASE_URL}${API_CONFIG.USERS.CHANGE_PASSWORD}`, passwordData);
+      const data = response.data;
       
       if (data._isSuccess) {
         return { 
@@ -146,10 +133,10 @@ class UserService {
       }
     } catch (error: any) {
       console.error('Error changing password:', error);
-      if (error.message === 'UNAUTHORIZED') {
+      if (error.response?.status === 401) {
         return { isSuccess: false, error: { message: 'UNAUTHORIZED' } };
       }
-      return { isSuccess: false, error: 'Error al cambiar la contraseña' };
+      return { isSuccess: false, error: error.response?.data?.message || 'Error al cambiar la contraseña' };
     }
   }
 }

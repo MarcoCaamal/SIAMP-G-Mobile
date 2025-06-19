@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
 import { Platform } from 'react-native';
 
+import WifiScanScreen from '@/modules/devices/screens/WifiScanScreen';
 import DevicesScreen from '../modules/devices/screens/DevicesScreen';
 import ProfileScreen from '../modules/profile/screens/ProfileScreen';
 import ScheduleScreen from '../modules/schedule/screens/ScheduleScreen';
@@ -17,6 +18,7 @@ export type TabParamList = {
   Devices: undefined;
   Schedule: undefined;
   Profile: undefined;
+  WifiScan: undefined;
 };
 
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -52,6 +54,15 @@ export default function TabNavigator() {
         options={{
           title: 'Dispositivos',
           tabBarIcon: ({ color }) => <MaterialIcons size={28} name="devices" color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="WifiScan"
+        component={WifiScanScreen}
+        options={{
+          title: 'Buscar WiFi',
+          tabBarButton: () => null,
+          tabBarItemStyle: { display: 'none' },
         }}
       />
       <Tab.Screen

@@ -26,7 +26,8 @@ export default function LoginForm() {
     if (!email.trim()) newErrors.email = 'El correo es obligatorio';
     if (!password) newErrors.password = 'La contraseña es obligatoria';
     return newErrors;
-  };  const handleLogin = async () => {
+  };  
+    const handleLogin = async () => {
     const validationErrors = validate();
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
