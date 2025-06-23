@@ -35,7 +35,8 @@ function TestScreen() {
 }
 
 export default function AuthNavigator() {
-  return (    <Stack.Navigator 
+  return (
+    <Stack.Navigator 
       initialRouteName="Login" 
       screenOptions={{ headerShown: false }}
     >

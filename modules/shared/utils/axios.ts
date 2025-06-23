@@ -166,6 +166,8 @@ class AxiosService {
       
       const result = response.data;
       
+      console.log('Resultado del refresh token:', result);
+      
       if (result._success && result._value?.accessToken) {
         // Guardar nuevo access token
         await AsyncStorage.setItem(API_CONFIG.STORAGE_KEYS.ACCESS_TOKEN, result._value.accessToken);

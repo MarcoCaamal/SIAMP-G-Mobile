@@ -4,6 +4,7 @@ import React from 'react';
 import { Platform } from 'react-native';
 
 import WifiScanScreen from '@/modules/devices/screens/WifiScanScreen';
+import DeviceConfigScreen from '../modules/devices/screens/DeviceConfigScreen';
 import DevicesScreen from '../modules/devices/screens/DevicesScreen';
 import ProfileScreen from '../modules/profile/screens/ProfileScreen';
 import ScheduleScreen from '../modules/schedule/screens/ScheduleScreen';
@@ -19,6 +20,7 @@ export type TabParamList = {
   Schedule: undefined;
   Profile: undefined;
   WifiScan: undefined;
+  DeviceConfig: { ssid: string; capabilities: string };
 };
 
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -32,7 +34,8 @@ export default function TabNavigator() {
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
         tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,        tabBarStyle: Platform.select({
+        tabBarBackground: TabBarBackground,
+        tabBarStyle: Platform.select({
           ios: {
             // Use a transparent background on iOS to show the blur effect
             position: 'absolute',
@@ -46,8 +49,7 @@ export default function TabNavigator() {
         options={{
           title: 'Inicio',
           tabBarIcon: ({ color }) => <MaterialIcons size={28} name="home" color={color} />,
-        }}
-      />
+        }}      />
       <Tab.Screen
         name="Devices"
         component={DevicesScreen}
@@ -61,6 +63,15 @@ export default function TabNavigator() {
         component={WifiScanScreen}
         options={{
           title: 'Buscar WiFi',
+          tabBarButton: () => null,
+          tabBarItemStyle: { display: 'none' },
+        }}
+      />
+      <Tab.Screen
+        name="DeviceConfig"
+        component={DeviceConfigScreen}
+        options={{
+          title: 'Configurar Dispositivo',
           tabBarButton: () => null,
           tabBarItemStyle: { display: 'none' },
         }}

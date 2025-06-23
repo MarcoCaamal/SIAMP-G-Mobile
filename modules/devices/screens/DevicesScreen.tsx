@@ -1,8 +1,17 @@
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { TabParamList } from '../../../navigation/TabNavigator';
 
 export default function DevicesScreen() {
+  const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
+  
+  const onAddDevice = () => {
+    navigation.navigate('WifiScan');
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -14,7 +23,7 @@ export default function DevicesScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Dispositivos Conectados</Text>
-          <TouchableOpacity style={styles.deviceCreateCard}>
+          <TouchableOpacity style={styles.deviceCreateCard} onPress={onAddDevice}>
             <Text style={styles.deviceCreateName}>Agregar Dispositivo+</Text>
           </TouchableOpacity>
 
