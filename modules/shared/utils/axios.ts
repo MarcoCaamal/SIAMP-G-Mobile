@@ -160,22 +160,17 @@ class AxiosService {
       
       // Realizar petición para refrescar el token
       const response = await axios.post<{ 
-        _success: boolean; 
-        _value?: { accessToken: string; refreshToken: string; }
+        _isSuccess: boolean; 
+        _value?: { accessToken: string; }
       }>(`${API_CONFIG.BASE_URL}${API_CONFIG.AUTH.REFRESH}`, { refreshToken });
       
       const result = response.data;
       
       console.log('Resultado del refresh token:', result);
       
-      if (result._success && result._value?.accessToken) {
+      if (result._isSuccess && result._value?.accessToken) {
         // Guardar nuevo access token
         await AsyncStorage.setItem(API_CONFIG.STORAGE_KEYS.ACCESS_TOKEN, result._value.accessToken);
-        
-        // Opcional: guardar nuevo refresh token si se devuelve
-        if (result._value.refreshToken) {
-          await AsyncStorage.setItem(API_CONFIG.STORAGE_KEYS.REFRESH_TOKEN, result._value.refreshToken);
-        }
         
         return result._value.accessToken;
       } else {

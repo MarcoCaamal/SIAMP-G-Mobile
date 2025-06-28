@@ -12,7 +12,7 @@ export const API_CONFIG = {
   //
   // 💡 Para encontrar tu IP local:
   // Windows: ipconfig | Mac/Linux: ifconfig
-  BASE_URL: __DEV__ ? 'http://192.168.0.13:3000/api' : 'https://siamp-api.balam-code.com/api',
+  BASE_URL: __DEV__ ? 'https://siamp-api.balam-code.com/api' : 'https://siamp-api.balam-code.com/api',
     // URLs específicas
   AUTH: {
     LOGIN: '/auth/login',

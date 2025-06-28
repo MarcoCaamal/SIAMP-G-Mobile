@@ -89,6 +89,7 @@ export default function DeviceConfigScreen() {
         }
     };
     const handleConfigureDevice = async () => {
+        await fetchDeviceInfo(); // Asegurarnos de que tenemos la info del dispositivo
         if (!deviceInfo || !deviceInfo.device_id) {
             Alert.alert('Error', 'No se pudo obtener la información del dispositivo');
             return;

@@ -5,6 +5,8 @@ import { Platform } from 'react-native';
 
 import WifiScanScreen from '@/modules/devices/screens/WifiScanScreen';
 import DeviceConfigScreen from '../modules/devices/screens/DeviceConfigScreen';
+import DeviceControlScreen from '../modules/devices/screens/DeviceControlScreen';
+import DeviceEditScreen from '../modules/devices/screens/DeviceEditScreen';
 import DevicesScreen from '../modules/devices/screens/DevicesScreen';
 import ProfileScreen from '../modules/profile/screens/ProfileScreen';
 import ScheduleScreen from '../modules/schedule/screens/ScheduleScreen';
@@ -21,6 +23,8 @@ export type TabParamList = {
   Profile: undefined;
   WifiScan: undefined;
   DeviceConfig: { ssid: string; capabilities: string };
+  DeviceControl: { deviceId: string };
+  DeviceEdit: { deviceId: string };
 };
 
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -49,7 +53,8 @@ export default function TabNavigator() {
         options={{
           title: 'Inicio',
           tabBarIcon: ({ color }) => <MaterialIcons size={28} name="home" color={color} />,
-        }}      />
+        }}
+      />
       <Tab.Screen
         name="Devices"
         component={DevicesScreen}
@@ -72,6 +77,24 @@ export default function TabNavigator() {
         component={DeviceConfigScreen}
         options={{
           title: 'Configurar Dispositivo',
+          tabBarButton: () => null,
+          tabBarItemStyle: { display: 'none' },
+        }}
+      />
+      <Tab.Screen
+        name="DeviceControl"
+        component={DeviceControlScreen}
+        options={{
+          title: 'Control de Dispositivo',
+          tabBarButton: () => null,
+          tabBarItemStyle: { display: 'none' },
+        }}
+      />
+      <Tab.Screen
+        name="DeviceEdit"
+        component={DeviceEditScreen}
+        options={{
+          title: 'Editar Dispositivo',
           tabBarButton: () => null,
           tabBarItemStyle: { display: 'none' },
         }}
