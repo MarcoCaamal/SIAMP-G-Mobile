@@ -1,3 +1,5 @@
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
@@ -15,6 +17,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import WifiManager from 'react-native-wifi-reborn';
+import { TabParamList } from '../../../navigation/TabNavigator';
 
 interface WiFiNetwork {
   SSID: string;
@@ -28,6 +31,7 @@ interface WiFiNetwork {
 // IMPORTANTE: Ahora que tienes un proyecto bare (nativo), puedes usar WiFi real!
 // Este código funciona con react-native-wifi-reborn en dispositivos reales
 export default function WifiScanScreen() {
+  const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
   const [networks, setNetworks] = useState<WiFiNetwork[]>([]);
   const [scanning, setScanning] = useState(false);
   const [selectedNetwork, setSelectedNetwork] = useState<WiFiNetwork | null>(null);
@@ -85,8 +89,7 @@ export default function WifiScanScreen() {
           ]
         );
         return;
-      }
-
+      }      
       // Escanear redes usando la API real
       const wifiList = await WifiManager.loadWifiList();
       console.log('Networks found:', wifiList.length);
@@ -95,17 +98,22 @@ export default function WifiScanScreen() {
       if (wifiList.length === 0) {
         Alert.alert('Información', 'No se encontraron redes WiFi');
       } else {
-        // Filtrar redes duplicadas por SSID y ordenar por señal
+        // Filtrar redes duplicadas por SSID, mostrar solo redes SIAMP-G y ordenar por señal
         const uniqueNetworks = wifiList
           .filter((network: any, index: number, self: any[]) => 
             network.SSID && 
             network.SSID.trim() !== '' &&
+            network.SSID.startsWith('SIAMP-G') && // Solo redes SIAMP-G
             index === self.findIndex((n: any) => n.SSID === network.SSID)
           )
           .sort((a: any, b: any) => b.level - a.level);
         
-        console.log('Filtered networks:', uniqueNetworks.length);
+        console.log('Filtered SIAMP-G networks:', uniqueNetworks.length);
         setNetworks(uniqueNetworks);
+        
+        if (uniqueNetworks.length === 0) {
+          Alert.alert('Información', 'No se encontraron redes SIAMP-G disponibles');
+        }
       }
       
     } catch (error) {
@@ -152,22 +160,46 @@ export default function WifiScanScreen() {
       try {
         const currentSSID = await WifiManager.getCurrentWifiSSID();
         console.log('Current connected SSID:', currentSSID);
-        
-        if (currentSSID === selectedNetwork.SSID) {
-          Alert.alert(
-            'Éxito',
-            `Conectado exitosamente a ${selectedNetwork.SSID}`,
-            [
-              {
-                text: 'OK',
-                onPress: () => {
-                  setModalVisible(false);
-                  setPassword('');
-                  setSelectedNetwork(null);
+          if (currentSSID === selectedNetwork.SSID) {
+          // Si es una red SIAMP-G, ir a la pantalla de configuración
+          if (selectedNetwork.SSID.startsWith('SIAMP-G')) {
+            Alert.alert(
+              'Éxito',
+              `Conectado exitosamente a ${selectedNetwork.SSID}`,
+              [
+                {
+                  text: 'Configurar Dispositivo',
+                  onPress: () => {
+                    setModalVisible(false);
+                    setPassword('');
+                    
+                    // Navegar a la pantalla de configuración del dispositivo
+                    navigation.navigate('DeviceConfig', {
+                      ssid: selectedNetwork.SSID,
+                      capabilities: selectedNetwork.capabilities
+                    });
+                    
+                    setSelectedNetwork(null);
+                  },
                 },
-              },
-            ]
-          );
+              ]
+            );
+          } else {
+            Alert.alert(
+              'Éxito',
+              `Conectado exitosamente a ${selectedNetwork.SSID}`,
+              [
+                {
+                  text: 'OK',
+                  onPress: () => {
+                    setModalVisible(false);
+                    setPassword('');
+                    setSelectedNetwork(null);
+                  },
+                },
+              ]
+            );
+          }
         } else {
           Alert.alert(
             'Estado de Conexión',
@@ -259,15 +291,14 @@ export default function WifiScanScreen() {
            capabilities.includes('WEP') || 
            capabilities.includes('PSK');
   };
-
   const renderNetworkItem = ({ item }: { item: WiFiNetwork }) => {
     const signal = getSignalStrength(item.level);
     const isSecure = isSecureNetwork(item.capabilities);
-    
-    return (
+      return (
       <TouchableOpacity
         style={styles.networkItem}
         onPress={() => {
+          // Siempre conectarse primero a la red SIAMP-G antes de ir a la configuración
           setSelectedNetwork(item);
           setModalVisible(true);
         }}
@@ -295,11 +326,10 @@ export default function WifiScanScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
+    <SafeAreaView style={styles.container}>      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Escáner WiFi</Text>
-        <Text style={styles.subtitle}>Redes disponibles</Text>
+        <Text style={styles.subtitle}>Conecta a tu dispositivo SIAMP-G</Text>
       </View>
 
       {/* Scan Button */}
@@ -307,18 +337,16 @@ export default function WifiScanScreen() {
         style={styles.scanButton}
         onPress={scanNetworks}
         disabled={scanning}
-      >
-        {scanning ? (
+      >        {scanning ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.scanButtonText}>🔍 Escanear Redes WiFi</Text>
+          <Text style={styles.scanButtonText}>🔍 Buscar Dispositivos SIAMP-G</Text>
         )}
       </TouchableOpacity>
 
       {/* Networks List */}
-      <View style={styles.networksContainer}>
-        <Text style={styles.sectionTitle}>
-          Redes Encontradas ({networks.length})
+      <View style={styles.networksContainer}>        <Text style={styles.sectionTitle}>
+          Dispositivos SIAMP-G ({networks.length})
         </Text>
         
         <FlatList
@@ -326,12 +354,11 @@ export default function WifiScanScreen() {
           keyExtractor={(item) => item.BSSID}
           renderItem={renderNetworkItem}
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>
-                {scanning ? 'Escaneando redes...' : 'No hay redes disponibles'}
+            <View style={styles.emptyContainer}>              <Text style={styles.emptyText}>
+                {scanning ? 'Buscando dispositivos SIAMP-G...' : 'No se encontraron dispositivos SIAMP-G'}
               </Text>
               <Text style={styles.emptySubtext}>
-                Presiona el botón para escanear redes WiFi
+                Asegúrate que tu dispositivo esté en modo de configuración y presiona el botón para buscar
               </Text>
             </View>
           }

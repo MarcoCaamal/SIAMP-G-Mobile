@@ -6,8 +6,7 @@ export const useUserProfile = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { logout } = useAuthContext();
-  const fetchProfile = async () => {
+  const { logout } = useAuthContext();  const fetchProfile = async () => {
     setLoading(true);
     setError(null);
     try {
@@ -15,7 +14,7 @@ export const useUserProfile = () => {
       if (result.isSuccess && result.value) {
         setProfile(result.value);
       } else {
-        if (result.error?.message?.includes('UNAUTHORIZED') || result.error === 'No valid access token') {
+        if (result.error?.message?.includes('UNAUTHORIZED')) {
           // Token inválido, hacer logout
           await logout();
         } else {
@@ -23,7 +22,7 @@ export const useUserProfile = () => {
         }
       }
     } catch (err: any) {
-      if (err.message === 'UNAUTHORIZED' || err.message === 'No valid access token') {
+      if (err.response?.status === 401) {
         await logout();
       } else {
         setError('Error de conexión');
@@ -31,8 +30,7 @@ export const useUserProfile = () => {
     } finally {
       setLoading(false);
     }
-  };
-  const updateProfile = async (data: UpdateProfileData) => {
+  };  const updateProfile = async (data: UpdateProfileData) => {
     setLoading(true);
     setError(null);
     try {
@@ -41,7 +39,7 @@ export const useUserProfile = () => {
         setProfile(result.value);
         return { success: true, message: result.message || 'Perfil actualizado exitosamente' };
       } else {
-        if (result.error?.message?.includes('UNAUTHORIZED') || result.error === 'No valid access token') {
+        if (result.error?.message?.includes('UNAUTHORIZED')) {
           await logout();
         }
         const errorMessage = result.error?.message || 'Error al actualizar el perfil';
@@ -49,17 +47,16 @@ export const useUserProfile = () => {
         return { success: false, message: errorMessage };
       }
     } catch (err: any) {
-      if (err.message === 'UNAUTHORIZED' || err.message === 'No valid access token') {
+      if (err.response?.status === 401) {
         await logout();
       }
-      const errorMessage = 'Error de conexión';
+      const errorMessage = err.response?.data?.message || 'Error de conexión';
       setError(errorMessage);
       return { success: false, message: errorMessage };
     } finally {
       setLoading(false);
     }
-  };
-  const updateNotifications = async (preferences: UpdateNotificationPreferences) => {
+  };  const updateNotifications = async (preferences: UpdateNotificationPreferences) => {
     setLoading(true);
     setError(null);
     try {
@@ -74,7 +71,7 @@ export const useUserProfile = () => {
         }
         return { success: true, message: result.message || 'Preferencias actualizadas exitosamente' };
       } else {
-        if (result.error?.message?.includes('UNAUTHORIZED') || result.error === 'No valid access token') {
+        if (result.error?.message?.includes('UNAUTHORIZED')) {
           await logout();
         }
         const errorMessage = result.error?.message || 'Error al actualizar las preferencias';
@@ -82,17 +79,16 @@ export const useUserProfile = () => {
         return { success: false, message: errorMessage };
       }
     } catch (err: any) {
-      if (err.message === 'UNAUTHORIZED' || err.message === 'No valid access token') {
+      if (err.response?.status === 401) {
         await logout();
       }
-      const errorMessage = 'Error de conexión';
+      const errorMessage = err.response?.data?.message || 'Error de conexión';
       setError(errorMessage);
       return { success: false, message: errorMessage };
     } finally {
       setLoading(false);
     }
-  };
-  const changePassword = async (passwordData: ChangePasswordData) => {
+  };  const changePassword = async (passwordData: ChangePasswordData) => {
     setLoading(true);
     setError(null);
     try {
@@ -100,7 +96,7 @@ export const useUserProfile = () => {
       if (result.isSuccess && result.value) {
         return { success: true, message: result.value.message };
       } else {
-        if (result.error?.message?.includes('UNAUTHORIZED') || result.error === 'No valid access token') {
+        if (result.error?.message?.includes('UNAUTHORIZED')) {
           await logout();
         }
         const errorMessage = result.error?.message || 'Error al cambiar la contraseña';
@@ -108,10 +104,10 @@ export const useUserProfile = () => {
         return { success: false, message: errorMessage };
       }
     } catch (err: any) {
-      if (err.message === 'UNAUTHORIZED' || err.message === 'No valid access token') {
+      if (err.response?.status === 401) {
         await logout();
       }
-      const errorMessage = 'Error de conexión';
+      const errorMessage = err.response?.data?.message || 'Error de conexión';
       setError(errorMessage);
       return { success: false, message: errorMessage };
     } finally {

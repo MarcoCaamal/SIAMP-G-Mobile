@@ -1,65 +1,37 @@
-import { API_URLS } from '../../shared/config/api.config';
+import { API_CONFIG } from '../../shared/config/api.config';
+import axios from '../../shared/utils/axios';
 import { AuthCredentials, AuthResult, UserRegisterData } from '../types/auth.types';
 
-class AuthService {
-  async register(userData: UserRegisterData): Promise<AuthResult> {
+class AuthService {  async register(userData: UserRegisterData): Promise<AuthResult> {
     try {
-      const response = await fetch(API_URLS.AUTH.REGISTER, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        return {
-          _success: false,
-          _error: {
-            message: data.message || 'Error en el registro',
-            code: response.status.toString()
-          }
-        };
-      }
+      const response = await axios.post(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.AUTH.REGISTER}`,
+        userData
+      );
 
       return {
         _success: true,
-        _value: data
+        _value: response.data
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         _success: false,
         _error: {
-          message: error instanceof Error ? error.message : 'Error desconocido',
-          code: 'NETWORK_ERROR'
+          message: error.response?.data?.message || 'Error en el registro',
+          code: error.response?.status?.toString() || 'NETWORK_ERROR',
+          statusCode: error.response?.status
         }
       };
     }
-  }    async login(credentials: AuthCredentials): Promise<AuthResult> {
+  }  async login(credentials: AuthCredentials): Promise<AuthResult> {
     try {
-      const response = await fetch(API_URLS.AUTH.LOGIN, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      });
+      const response = await axios.post(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.AUTH.LOGIN}`,
+        credentials
+      );
 
-      const data = await response.json();
+      const data = response.data;
       
-      if (!response.ok) {
-        return {
-          _success: false,
-          _error: {
-            message: data.message || data._error?.message || 'Error en el login',
-            code: data.code || data._error?.code || response.status.toString(),
-            statusCode: data.statusCode || data._error?.statusCode || response.status
-          }
-        };
-      }
-
       // Manejar tanto _success como _isSuccess
       const isSuccess = data._success || data._isSuccess;
       
@@ -78,12 +50,13 @@ class AuthService {
           }
         };
       }
-    } catch (error) {
+    } catch (error: any) {
       return {
         _success: false,
         _error: {
-          message: error instanceof Error ? error.message : 'Error desconocido',
-          code: 'NETWORK_ERROR'
+          message: error.response?.data?.message || (error instanceof Error ? error.message : 'Error desconocido'),
+          code: error.response?.status?.toString() || 'NETWORK_ERROR',
+          statusCode: error.response?.status
         }
       };
     }
@@ -93,76 +66,46 @@ class AuthService {
     // Aquí puedes agregar lógica para invalidar token en el servidor
     return Promise.resolve();
   }
-
   async sendVerificationCode(email: string): Promise<AuthResult> {
     try {
-      const response = await fetch(API_URLS.AUTH.SEND_VERIFICATION_CODE, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        return {
-          _success: false,
-          _error: {
-            message: data.message || 'Error al reenviar el código',
-            code: response.status.toString()
-          }
-        };
-      }
+      const response = await axios.post(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.AUTH.SEND_VERIFICATION_CODE}`,
+        { email }
+      );
 
       return {
         _success: true,
-        _value: data
+        _value: response.data
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         _success: false,
         _error: {
-          message: error instanceof Error ? error.message : 'Error desconocido',
-          code: 'NETWORK_ERROR'
+          message: error.response?.data?.message || 'Error al reenviar el código',
+          code: error.response?.status?.toString() || 'NETWORK_ERROR',
+          statusCode: error.response?.status
         }
       };
     }
   }
-
   async verifyEmailCode(code: string): Promise<AuthResult> {
     try {
-      const response = await fetch(API_URLS.AUTH.VERIFY_EMAIL_CODE, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ code }),
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        return {
-          _success: false,
-          _error: {
-            message: data.message || 'Código de verificación inválido',
-            code: response.status.toString()
-          }
-        };
-      }
+      const response = await axios.post(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.AUTH.VERIFY_EMAIL_CODE}`,
+        { code }
+      );
 
       return {
         _success: true,
-        _value: data
+        _value: response.data
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         _success: false,
         _error: {
-          message: error instanceof Error ? error.message : 'Error desconocido',
-          code: 'NETWORK_ERROR'
+          message: error.response?.data?.message || 'Código de verificación inválido',
+          code: error.response?.status?.toString() || 'NETWORK_ERROR',
+          statusCode: error.response?.status
         }
       };
     }

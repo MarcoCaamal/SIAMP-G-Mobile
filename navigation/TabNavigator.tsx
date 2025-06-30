@@ -3,6 +3,10 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
 import { Platform } from 'react-native';
 
+import WifiScanScreen from '@/modules/devices/screens/WifiScanScreen';
+import DeviceConfigScreen from '../modules/devices/screens/DeviceConfigScreen';
+import DeviceControlScreen from '../modules/devices/screens/DeviceControlScreen';
+import DeviceEditScreen from '../modules/devices/screens/DeviceEditScreen';
 import DevicesScreen from '../modules/devices/screens/DevicesScreen';
 import ProfileScreen from '../modules/profile/screens/ProfileScreen';
 import ScheduleScreen from '../modules/schedule/screens/ScheduleScreen';
@@ -17,6 +21,10 @@ export type TabParamList = {
   Devices: undefined;
   Schedule: undefined;
   Profile: undefined;
+  WifiScan: undefined;
+  DeviceConfig: { ssid: string; capabilities: string };
+  DeviceControl: { deviceId: string };
+  DeviceEdit: { deviceId: string };
 };
 
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -30,7 +38,8 @@ export default function TabNavigator() {
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
         tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,        tabBarStyle: Platform.select({
+        tabBarBackground: TabBarBackground,
+        tabBarStyle: Platform.select({
           ios: {
             // Use a transparent background on iOS to show the blur effect
             position: 'absolute',
@@ -52,6 +61,42 @@ export default function TabNavigator() {
         options={{
           title: 'Dispositivos',
           tabBarIcon: ({ color }) => <MaterialIcons size={28} name="devices" color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="WifiScan"
+        component={WifiScanScreen}
+        options={{
+          title: 'Buscar WiFi',
+          tabBarButton: () => null,
+          tabBarItemStyle: { display: 'none' },
+        }}
+      />
+      <Tab.Screen
+        name="DeviceConfig"
+        component={DeviceConfigScreen}
+        options={{
+          title: 'Configurar Dispositivo',
+          tabBarButton: () => null,
+          tabBarItemStyle: { display: 'none' },
+        }}
+      />
+      <Tab.Screen
+        name="DeviceControl"
+        component={DeviceControlScreen}
+        options={{
+          title: 'Control de Dispositivo',
+          tabBarButton: () => null,
+          tabBarItemStyle: { display: 'none' },
+        }}
+      />
+      <Tab.Screen
+        name="DeviceEdit"
+        component={DeviceEditScreen}
+        options={{
+          title: 'Editar Dispositivo',
+          tabBarButton: () => null,
+          tabBarItemStyle: { display: 'none' },
         }}
       />
       <Tab.Screen
