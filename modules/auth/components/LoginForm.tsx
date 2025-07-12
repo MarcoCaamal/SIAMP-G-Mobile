@@ -65,6 +65,7 @@ export default function LoginForm() {
           });
         }
       }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       // Error de red u otro error inesperado
       setErrors({ 

@@ -65,6 +65,7 @@ export default function RegisterForm() {
           api: result._error?.message || "Error desconocido en el registro",
         });
       }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       // Error de red u otro error inesperado
       setErrors({
