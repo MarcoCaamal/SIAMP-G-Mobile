@@ -42,7 +42,8 @@ const VerifyEmailScreen = ({ navigation, route }: any) => {
     }
     // Aquí implementarías la lógica de verificación
     console.log('Código ingresado:', fullCode);
-    // navigation.navigate('NewPassword') o la siguiente pantalla
+    // Navegar a la pantalla de nueva contraseña tras verificación exitosa
+    navigation.navigate('NewPasswordScreen');
   };
 
   const handleResendCode = () => {

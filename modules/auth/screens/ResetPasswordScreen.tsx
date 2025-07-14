@@ -1,24 +1,62 @@
 import { Ionicons } from '@expo/vector-icons';
+import { StackNavigationProp } from '@react-navigation/stack';
 import React, { useState } from 'react';
 import {
-    KeyboardAvoidingView,
-    Platform,
-    SafeAreaView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
-const ResetPasswordScreen = ({ navigation }: any) => {
-  const [email, setEmail] = useState('');
+import { AuthStackParamList } from '../../../navigation/AuthNavigator';
 
-  const handleSendEmail = () => {
-    // Aquí implementarías la lógica para enviar el email de restablecimiento
-    console.log('Enviando email a:', email);
-    // navigation.navigate('EmailSent') o mostrar un mensaje de confirmación
+type ResetPasswordScreenProps = {
+  navigation: StackNavigationProp<AuthStackParamList, 'ResetPasswordScreen'>;
+};
+
+const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation }) => {
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleSendEmail = async () => {
+    if (!email.trim()) {
+      Alert.alert('Error', 'Por favor ingresa tu correo electrónico');
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      Alert.alert('Error', 'Por favor ingresa un correo electrónico válido');
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      // Aquí implementarías la lógica para enviar el email de restablecimiento
+      console.log('Enviando email a:', email);
+      
+      // Simular delay de API
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Navegar a la pantalla de verificación de email
+      navigation.navigate('VerifyEmailScreen', { email });
+      
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo enviar el correo. Inténtalo de nuevo.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleGoBack = () => {
@@ -49,13 +87,17 @@ const ResetPasswordScreen = ({ navigation }: any) => {
           <Text style={styles.title}>Restablece tu contraseña</Text>
           {/* Subtítulo */}
           <Text style={styles.subtitle}>
-            Ingresa tu email vinculado a tu cuenta de SIAMP-G
+            Ingresa tu correo electrónico para recibir{"\n"}las instrucciones de recuperación
           </Text>
+          
           {/* Campo de email */}
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Correo electrónico</Text>
             <TextInput
-              style={styles.textInput}
+              style={[
+                styles.textInput,
+                !validateEmail(email) && email.length > 0 && styles.textInputError
+              ]}
               placeholder="ejemplo@email.com"
               placeholderTextColor="#999"
               value={email}
@@ -63,18 +105,35 @@ const ResetPasswordScreen = ({ navigation }: any) => {
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
+              editable={!isLoading}
             />
+            {!validateEmail(email) && email.length > 0 && (
+              <Text style={styles.errorText}>Ingresa un correo válido</Text>
+            )}
           </View>
+          
+          {/* Información adicional */}
+          <View style={styles.infoContainer}>
+            <Ionicons name="information-circle" size={16} color="#7BB3FF" />
+            <Text style={styles.infoText}>
+              Te enviaremos un código de verificación de 4 dígitos
+            </Text>
+          </View>
+
           {/* Botón de enviar */}
           <TouchableOpacity 
             style={[
               styles.sendButton, 
-              !email.trim() && styles.sendButtonDisabled
+              (!email.trim() || !validateEmail(email) || isLoading) && styles.sendButtonDisabled
             ]}
             onPress={handleSendEmail}
-            disabled={!email.trim()}
+            disabled={!email.trim() || !validateEmail(email) || isLoading}
           >
-            <Text style={styles.sendButtonText}>Enviar</Text>
+            {isLoading ? (
+              <Text style={styles.sendButtonText}>Enviando...</Text>
+            ) : (
+              <Text style={styles.sendButtonText}>Enviar código</Text>
+            )}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -163,6 +222,32 @@ const styles = StyleSheet.create({
     color: '#333',
     borderWidth: 1,
     borderColor: '#e0e0e0',
+  },
+  textInputError: {
+    borderColor: '#F44336',
+    backgroundColor: '#ffebee',
+  },
+  errorText: {
+    fontSize: 12,
+    color: '#F44336',
+    marginTop: 4,
+    marginLeft: 4,
+  },
+  infoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f8ff',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#e3f2fd',
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#7BB3FF',
+    marginLeft: 8,
+    flex: 1,
   },
   sendButton: {
     width: '100%',

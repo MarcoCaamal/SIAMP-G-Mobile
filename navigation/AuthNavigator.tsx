@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import ChangePasswordScreen from '../modules/auth/screens/ChangePasswordScreen';
 import LoginScreen from '../modules/auth/screens/LoginScreen';
+import NewPasswordScreen from '../modules/auth/screens/NewPasswordScreen';
 import RegisterScreen from '../modules/auth/screens/RegisterScreen';
 import ResetPasswordScreen from '../modules/auth/screens/ResetPasswordScreen';
 import VerificationScreen from '../modules/auth/screens/VerificationScreen';
@@ -19,6 +20,7 @@ export type AuthStackParamList = {
   ResetPasswordScreen: undefined;
   VerifyEmailScreen: { email?: string } | undefined;
   ChangePasswordScreen: undefined;
+  NewPasswordScreen: undefined;
   WifiScan: undefined;
 };
 
@@ -46,6 +48,7 @@ export default function AuthNavigator() {
       <Stack.Screen name="ResetPasswordScreen" component={ResetPasswordScreen} />
       <Stack.Screen name="VerifyEmailScreen" component={VerifyEmailScreen} />
       <Stack.Screen name="ChangePasswordScreen" component={ChangePasswordScreen} />
+      <Stack.Screen name="NewPasswordScreen" component={NewPasswordScreen} />
     </Stack.Navigator>
   );
 }
