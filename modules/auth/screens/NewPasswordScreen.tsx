@@ -15,16 +15,25 @@ import {
 } from 'react-native';
 
 import { AuthStackParamList } from '../../../navigation/AuthNavigator';
+import { passwordRecoveryService } from '../services/passwordRecoveryService';
 
 type NewPasswordScreenProps = {
   navigation: StackNavigationProp<AuthStackParamList, 'NewPasswordScreen'>;
+  route: {
+    params?: {
+      token?: string;
+      email?: string;
+    };
+  };
 };
 
-const NewPasswordScreen: React.FC<NewPasswordScreenProps> = ({ navigation }) => {
+const NewPasswordScreen: React.FC<NewPasswordScreenProps> = ({ navigation, route }) => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const resetToken = route?.params?.token;
 
   const validatePassword = (password: string) => {
     // Validaciones básicas de contraseña
@@ -43,7 +52,7 @@ const NewPasswordScreen: React.FC<NewPasswordScreenProps> = ({ navigation }) => 
     return null;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Validar que las contraseñas no estén vacías
     if (!newPassword.trim() || !confirmPassword.trim()) {
       Alert.alert('Error', 'Por favor completa todos los campos');
@@ -63,18 +72,39 @@ const NewPasswordScreen: React.FC<NewPasswordScreenProps> = ({ navigation }) => 
       return;
     }
 
-    // Aquí implementarías la lógica para actualizar la contraseña
-    console.log('Actualizando contraseña...');
-    Alert.alert(
-      'Éxito', 
-      'Tu contraseña ha sido actualizada exitosamente',
-      [
-        {
-          text: 'OK',
-          onPress: () => navigation.navigate('Login')
-        }
-      ]
-    );
+    // Validar que tenemos el token
+    if (!resetToken) {
+      Alert.alert('Error', 'Token de restablecimiento no válido. Intenta el proceso de nuevo.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Llamar a la API para actualizar la contraseña
+      const result = await passwordRecoveryService.updatePassword(resetToken, newPassword);
+      
+      if (result.success) {
+        Alert.alert(
+          'Éxito', 
+          result.message || 'Tu contraseña ha sido actualizada exitosamente',
+          [
+            {
+              text: 'OK',
+              onPress: () => navigation.navigate('Login')
+            }
+          ]
+        );
+      } else {
+        Alert.alert('Error', result.message || 'Error al actualizar la contraseña');
+      }
+      
+    } catch (error) {
+      console.error('Error en handleSubmit:', error);
+      Alert.alert('Error', 'Error al actualizar la contraseña. Inténtalo de nuevo.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleGoBack = () => {
@@ -237,7 +267,7 @@ const NewPasswordScreen: React.FC<NewPasswordScreenProps> = ({ navigation }) => 
             onPress={handleSubmit}
             disabled={!isFormValid}
           >
-            <Text style={styles.updateButtonText}>Actualizar contraseña</Text>
+            <Text style={styles.updateButtonText}>{isLoading ? 'Actualizando...' : 'Actualizar contraseña'}</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

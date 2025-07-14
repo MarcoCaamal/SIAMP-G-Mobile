@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 
 import { AuthStackParamList } from '../../../navigation/AuthNavigator';
+import { passwordRecoveryService } from '../services/passwordRecoveryService';
 
 type ResetPasswordScreenProps = {
   navigation: StackNavigationProp<AuthStackParamList, 'ResetPasswordScreen'>;
@@ -43,17 +44,29 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation })
     setIsLoading(true);
     
     try {
-      // Aquí implementarías la lógica para enviar el email de restablecimiento
-      console.log('Enviando email a:', email);
+      // Llamar a la API real para solicitar el código
+      const result = await passwordRecoveryService.requestPasswordReset(email);
       
-      // Simular delay de API
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Navegar a la pantalla de verificación de email
-      navigation.navigate('VerifyEmailScreen', { email });
+      if (result.success) {
+        // Mostrar mensaje de éxito y navegar
+        Alert.alert(
+          'Código enviado',
+          result.message || 'Se ha enviado un código de verificación a tu correo',
+          [
+            {
+              text: 'OK',
+              onPress: () => navigation.navigate('VerifyEmailScreen', { email })
+            }
+          ]
+        );
+      } else {
+        // Mostrar error de la API
+        Alert.alert('Error', result.message);
+      }
       
     } catch (error) {
-      Alert.alert('Error', 'No se pudo enviar el correo. Inténtalo de nuevo.');
+      console.error('Error en handleSendEmail:', error);
+      Alert.alert('Error', 'No se pudo enviar el correo. Verifica tu conexión e inténtalo de nuevo.');
     } finally {
       setIsLoading(false);
     }

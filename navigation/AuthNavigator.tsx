@@ -20,7 +20,7 @@ export type AuthStackParamList = {
   ResetPasswordScreen: undefined;
   VerifyEmailScreen: { email?: string } | undefined;
   ChangePasswordScreen: undefined;
-  NewPasswordScreen: undefined;
+  NewPasswordScreen: { token?: string; email?: string } | undefined;
   WifiScan: undefined;
 };
 

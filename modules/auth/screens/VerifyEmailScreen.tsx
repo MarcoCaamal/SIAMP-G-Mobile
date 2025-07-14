@@ -13,9 +13,13 @@ import {
     View,
 } from 'react-native';
 
+import { passwordRecoveryService } from '../services/passwordRecoveryService';
+
 const VerifyEmailScreen = ({ navigation, route }: any) => {
   const [code, setCode] = useState(['', '', '', '']);
   const [email, setEmail] = useState(route?.params?.email || 'example@correo.com');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const inputRefs = useRef<Array<TextInput | null>>([]);
 
   const handleCodeChange = (value: string, index: number) => {
@@ -34,22 +38,57 @@ const VerifyEmailScreen = ({ navigation, route }: any) => {
     }
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     const fullCode = code.join('');
     if (fullCode.length !== 4) {
       Alert.alert('Error', 'Por favor ingresa el código completo de 4 dígitos');
       return;
     }
-    // Aquí implementarías la lógica de verificación
-    console.log('Código ingresado:', fullCode);
-    // Navegar a la pantalla de nueva contraseña tras verificación exitosa
-    navigation.navigate('NewPasswordScreen');
+
+    setIsLoading(true);
+
+    try {
+      // Verificar el código con la API
+      const result = await passwordRecoveryService.verifyResetCode(email, fullCode);
+      
+      if (result.success && result.token) {
+        // Navegar a la pantalla de nueva contraseña con el token
+        navigation.navigate('NewPasswordScreen', { 
+          token: result.token,
+          email: email 
+        });
+      } else {
+        Alert.alert('Error', result.message || 'Código inválido');
+      }
+      
+    } catch (error) {
+      console.error('Error en handleConfirm:', error);
+      Alert.alert('Error', 'Error al verificar el código. Inténtalo de nuevo.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleResendCode = () => {
-    Alert.alert('Código reenviado', 'Se ha enviado un nuevo código a tu correo');
-    setCode(['', '', '', '']);
-    inputRefs.current[0]?.focus();
+  const handleResendCode = async () => {
+    setIsResending(true);
+    
+    try {
+      const result = await passwordRecoveryService.requestPasswordReset(email);
+      
+      if (result.success) {
+        Alert.alert('Código reenviado', result.message || 'Se ha enviado un nuevo código a tu correo');
+        setCode(['', '', '', '']);
+        inputRefs.current[0]?.focus();
+      } else {
+        Alert.alert('Error', result.message || 'No se pudo reenviar el código');
+      }
+      
+    } catch (error) {
+      console.error('Error en handleResendCode:', error);
+      Alert.alert('Error', 'Error al reenviar el código. Inténtalo de nuevo.');
+    } finally {
+      setIsResending(false);
+    }
   };
 
   const handleGoBack = () => {
@@ -108,8 +147,8 @@ const VerifyEmailScreen = ({ navigation, route }: any) => {
           {/* Enlace de reenvío */}
           <View style={styles.resendContainer}>
             <Text style={styles.resendQuestion}>¿No recibiste el correo? </Text>
-            <TouchableOpacity onPress={handleResendCode}>
-              <Text style={styles.resendLink}>Reenviar</Text>
+            <TouchableOpacity onPress={handleResendCode} disabled={isResending}>
+              <Text style={styles.resendLink}>{isResending ? 'Reenviando...' : 'Reenviar'}</Text>
             </TouchableOpacity>
           </View>
           {/* Botón de confirmar */}
@@ -119,9 +158,9 @@ const VerifyEmailScreen = ({ navigation, route }: any) => {
               !isCodeComplete && styles.confirmButtonDisabled
             ]}
             onPress={handleConfirm}
-            disabled={!isCodeComplete}
+            disabled={!isCodeComplete || isLoading}
           >
-            <Text style={styles.confirmButtonText}>Confirmar</Text>
+            <Text style={styles.confirmButtonText}>{isLoading ? 'Verificando...' : 'Confirmar'}</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
