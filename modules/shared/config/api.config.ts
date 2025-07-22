@@ -12,7 +12,7 @@ export const API_CONFIG = {
   //
   // 💡 Para encontrar tu IP local:
   // Windows: ipconfig | Mac/Linux: ifconfig
-  BASE_URL: __DEV__ ? 'https://siamp-api.balam-code.com/api' : 'https://siamp-api.balam-code.com/api',
+  BASE_URL: __DEV__ ? 'http://192.168.0.13:3000/api' : 'https://siamp-api.balam-code.com/api',
     // URLs específicas
   AUTH: {
     LOGIN: '/auth/login',
@@ -26,6 +26,12 @@ export const API_CONFIG = {
     PROFILE: '/users/profile',
     NOTIFICATIONS: '/users/notifications',
     CHANGE_PASSWORD: '/users/change-password',
+  },
+  
+  LIGHTING_MODES: {
+    BASE: '/lighting-modes',
+    SHARE: (id: string) => `/lighting-modes/${id}/share`,
+    IMPORT: '/lighting-modes/import',
   },
   
   // Configuración de tokens
@@ -55,5 +61,11 @@ export const API_URLS = {
     PROFILE: `${API_CONFIG.BASE_URL}${API_CONFIG.USERS.PROFILE}`,
     NOTIFICATIONS: `${API_CONFIG.BASE_URL}${API_CONFIG.USERS.NOTIFICATIONS}`,
     CHANGE_PASSWORD: `${API_CONFIG.BASE_URL}${API_CONFIG.USERS.CHANGE_PASSWORD}`,
+  },
+  
+  LIGHTING_MODES: {
+    BASE: `${API_CONFIG.BASE_URL}${API_CONFIG.LIGHTING_MODES.BASE}`,
+    SHARE: (id: string) => `${API_CONFIG.BASE_URL}${API_CONFIG.LIGHTING_MODES.SHARE(id)}`,
+    IMPORT: `${API_CONFIG.BASE_URL}${API_CONFIG.LIGHTING_MODES.IMPORT}`,
   },
 };

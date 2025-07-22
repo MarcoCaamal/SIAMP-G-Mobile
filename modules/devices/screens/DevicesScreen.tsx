@@ -56,7 +56,7 @@ export default function DevicesScreen() {
   const handleDeleteDevice = (device: Device) => {
     Alert.alert(
       'Confirmar eliminación',
-      `¿Está seguro que desea eliminar el dispositivo "${device.name}"? Esta acción no se puede deshacer.`,
+      `¿Está seguro que desea eliminar el dispositivo &quot;${device.name}&quot;? Esta acción no se puede deshacer.`,
       [
         { text: 'Cancelar', style: 'cancel' },
         { 
