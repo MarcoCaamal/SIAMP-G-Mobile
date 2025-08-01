@@ -1,6 +1,11 @@
 import React from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import RegisterForm from '../components/RegisterForm';
 
 export default function RegisterScreen() {
-  return <RegisterForm />;
+  return (
+    <SafeAreaView>
+      <RegisterForm />
+    </SafeAreaView>
+  );
 }

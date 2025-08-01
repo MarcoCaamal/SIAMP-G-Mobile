@@ -11,6 +11,7 @@ export const useUserProfile = () => {
     setError(null);
     try {
       const result = await userService.getUserProfile();
+      console.log('Fetched user profile:', result);
       if (result.isSuccess && result.value) {
         setProfile(result.value);
       } else {
@@ -30,10 +31,12 @@ export const useUserProfile = () => {
     } finally {
       setLoading(false);
     }
-  };  const updateProfile = async (data: UpdateProfileData) => {
+  };  
+  const updateProfile = async (data: UpdateProfileData) => {
     setLoading(true);
     setError(null);
     try {
+      console.log('Updating profile with data:', data);
       const result = await userService.updateUserProfile(data);
       if (result.isSuccess && result.value) {
         setProfile(result.value);
@@ -42,6 +45,7 @@ export const useUserProfile = () => {
         if (result.error?.message?.includes('UNAUTHORIZED')) {
           await logout();
         }
+        console.log(result.error);
         const errorMessage = result.error?.message || 'Error al actualizar el perfil';
         setError(errorMessage);
         return { success: false, message: errorMessage };
@@ -99,7 +103,76 @@ export const useUserProfile = () => {
         if (result.error?.message?.includes('UNAUTHORIZED')) {
           await logout();
         }
-        const errorMessage = result.error?.message || 'Error al cambiar la contraseña';
+        console.log('Error changing password:', result.error);
+        const errorMessage = result.error?.code || 'Error al cambiar la contraseña';
+        setError(errorMessage);
+        return { success: false, message: errorMessage };
+      }
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        await logout();
+      }
+      const errorMessage = err.response?.data?.message || 'Error de conexión';
+      setError(errorMessage);
+      return { success: false, message: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const uploadProfilePicture = async (imageUri: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await userService.uploadProfilePicture(imageUri);
+      if (result.isSuccess && result.value) {
+        // Actualizar el perfil local con la nueva URL de la foto
+        if (profile) {
+          setProfile({
+            ...profile,
+            profilePicture: result.value.fileName,
+          });
+        }
+        return { success: true, message: result.value.message, data: result.value };
+      } else {
+        if (result.error?.message?.includes('UNAUTHORIZED')) {
+          await logout();
+        }
+        const errorMessage = result.error?.message || 'Error al subir la foto de perfil';
+        setError(errorMessage);
+        return { success: false, message: errorMessage };
+      }
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        await logout();
+      }
+      const errorMessage = err.response?.data?.message || 'Error de conexión';
+      setError(errorMessage);
+      return { success: false, message: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteProfilePicture = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await userService.deleteProfilePicture();
+      if (result.isSuccess && result.value) {
+        // Actualizar el perfil local removiendo la foto
+        if (profile) {
+          setProfile({
+            ...profile,
+            profilePicture: '',
+          });
+        }
+        return { success: true, message: result.value.message };
+      } else {
+        if (result.error?.message?.includes('UNAUTHORIZED')) {
+          await logout();
+        }
+        const errorMessage = result.error?.message || 'Error al eliminar la foto de perfil';
         setError(errorMessage);
         return { success: false, message: errorMessage };
       }
@@ -123,5 +196,7 @@ export const useUserProfile = () => {
     updateProfile,
     updateNotifications,
     changePassword,
+    uploadProfilePicture,
+    deleteProfilePicture,
   };
 };

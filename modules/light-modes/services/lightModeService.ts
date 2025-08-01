@@ -254,6 +254,7 @@ class LightModeService {
       }
     } catch (error: any) {
       console.error('Error al compartir modo de iluminación:', error);
+      console.error('Respuesta de error:', error.response?.data);
       return {
         _isSuccess: false,
         _error: error.response?.data?.message || 'Error de conexión'

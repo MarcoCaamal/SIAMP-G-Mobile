@@ -81,7 +81,7 @@ export default function LoginForm() {
       <View style={styles.card}>
         <View style={styles.logoContainer}>
           <Image
-            source={{ uri: 'https://c0.klipartz.com/pngpicture/992/606/gratis-png-pata-de-perro-salvaje-huella-digital.png' }}
+            source={require('../../../assets/logo.png')}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -162,9 +162,8 @@ const styles = StyleSheet.create({
     minHeight: '100%',
   },
   header: {
-    backgroundColor: '#8EC5FC',
-    paddingTop: 40,
-    paddingBottom: 10,
+    backgroundColor: '#336075',
+    paddingVertical: 15,
     alignItems: 'center',
   },
   headerText: {
@@ -184,7 +183,7 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     marginBottom: 40,
-    backgroundColor: '#e9edf2',
+    backgroundColor: '#fff',
     borderRadius: 100,
     padding: 20,
   },
@@ -224,7 +223,7 @@ const styles = StyleSheet.create({
     maxWidth: 340,
     width: '100%',
   },  button: {
-    backgroundColor: '#8EC5FC',
+    backgroundColor: '#336075',
     paddingVertical: 12,
     paddingHorizontal: 60,
     borderRadius: 8,

@@ -2,7 +2,8 @@ import { API_CONFIG } from '../../shared/config/api.config';
 import axios from '../../shared/utils/axios';
 import { AuthCredentials, AuthResult, UserRegisterData } from '../types/auth.types';
 
-class AuthService {  async register(userData: UserRegisterData): Promise<AuthResult> {
+class AuthService {
+  async register(userData: UserRegisterData): Promise<AuthResult> {
     try {
       const response = await axios.post(
         `${API_CONFIG.BASE_URL}${API_CONFIG.AUTH.REGISTER}`,
@@ -23,7 +24,8 @@ class AuthService {  async register(userData: UserRegisterData): Promise<AuthRes
         }
       };
     }
-  }  async login(credentials: AuthCredentials): Promise<AuthResult> {
+  }
+  async login(credentials: AuthCredentials): Promise<AuthResult> {
     try {
       const response = await axios.post(
         `${API_CONFIG.BASE_URL}${API_CONFIG.AUTH.LOGIN}`,
@@ -61,7 +63,6 @@ class AuthService {  async register(userData: UserRegisterData): Promise<AuthRes
       };
     }
   }
-
   async logout(): Promise<void> {
     // Aquí puedes agregar lógica para invalidar token en el servidor
     return Promise.resolve();
@@ -104,6 +105,28 @@ class AuthService {  async register(userData: UserRegisterData): Promise<AuthRes
         _success: false,
         _error: {
           message: error.response?.data?.message || 'Código de verificación inválido',
+          code: error.response?.status?.toString() || 'NETWORK_ERROR',
+          statusCode: error.response?.status
+        }
+      };
+    }
+  }
+  async sendResetPasswordEmail(email: string): Promise<AuthResult> {
+    try {
+      const response = await axios.post(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.AUTH.SEND_RESET_PASSWORD_EMAIL}`,
+        { email }
+      );
+
+      return {
+        _success: true,
+        _value: response.data
+      };
+    } catch (error: any) {
+      return {
+        _success: false,
+        _error: {
+          message: error.response?.data?.message || 'Error al enviar el email de restablecimiento',
           code: error.response?.status?.toString() || 'NETWORK_ERROR',
           statusCode: error.response?.status
         }

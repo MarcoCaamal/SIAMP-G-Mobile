@@ -26,6 +26,8 @@ export default function RegisterForm() {
 
   const [userRegisterData, setUserRegisterData] = useState<UserRegisterData>({
     name: "",
+    firstLastName: "",
+    secondLastName: "",
     email: "",
     password: "",
     timezone: "UTC-03:00",
@@ -38,6 +40,10 @@ export default function RegisterForm() {
     const newErrors: { [key: string]: string } = {};
     if (!userRegisterData.name.trim())
       newErrors.name = "El nombre es obligatorio";
+    if (!userRegisterData.firstLastName.trim())
+      newErrors.firstLastName = "El primer apellido es obligatorio";
+    if (!userRegisterData.secondLastName.trim())
+      newErrors.secondLastName = "El segundo apellido es obligatorio";
     if (!userRegisterData.email.trim())
       newErrors.email = "El correo es obligatorio";
     if (!userRegisterData.password)
@@ -95,6 +101,34 @@ export default function RegisterForm() {
             }
           />
           {errors.name && <Text style={styles.error}>{errors.name}</Text>}
+        </View>
+        <View style={styles.field}>
+          <Text style={styles.label}>Primer apellido</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ingresa tu primer apellido"
+            value={userRegisterData.firstLastName}
+            onChangeText={(text) =>
+              setUserRegisterData({ ...userRegisterData, firstLastName: text })
+            }
+          />
+          {errors.firstLastName && (
+            <Text style={styles.error}>{errors.firstLastName}</Text>
+          )}
+        </View>
+        <View style={styles.field}>
+          <Text style={styles.label}>Segundo apellido</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ingresa tu segundo apellido"
+            value={userRegisterData.secondLastName}
+            onChangeText={(text) =>
+              setUserRegisterData({ ...userRegisterData, secondLastName: text })
+            }
+          />
+          {errors.secondLastName && (
+            <Text style={styles.error}>{errors.secondLastName}</Text>
+          )}
         </View>
         <View style={styles.field}>
           <Text style={styles.label}>Correo electrónico</Text>
@@ -199,9 +233,8 @@ const styles = StyleSheet.create({
     minHeight: "100%",
   },
   header: {
-    backgroundColor: "#8EC5FC",
-    paddingTop: 40,
-    paddingBottom: 10,
+    backgroundColor: "#336075",
+    paddingVertical: 15,
     alignItems: "center",
   },
   headerText: {
@@ -271,7 +304,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   button: {
-    backgroundColor: "#8EC5FC",
+    backgroundColor: "#8fbbd2",
     paddingVertical: 12,
     paddingHorizontal: 60,
     borderRadius: 8,
@@ -294,7 +327,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     textAlign: "center",
-    marginTop: 40,
+    marginVertical: 15,
     fontSize: 12,
     color: "#aaa",
   },

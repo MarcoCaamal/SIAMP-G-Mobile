@@ -3,14 +3,14 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useRef, useState } from 'react';
 import {
   Alert,
-  SafeAreaView,
-  StatusBar,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSendVerificationCode, useVerifyEmailCode } from '../hooks/useAuth';
 
 const VerificationScreen = () => {
@@ -105,80 +105,79 @@ const VerificationScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor="#5B9BD5" barStyle="light-content" />
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => {
-            if (navigation.canGoBack && navigation.canGoBack()) {
-              navigation.goBack();
-            } else {
-              // Navegar al stack de autenticación y pantalla Login correctamente
-              navigation.reset({
-                index: 0,
-                routes: [{ name: 'Auth', params: { screen: 'Login' } }],
-              });
-            }
-          }}
-        >
-          <MaterialIcons name="arrow-back" size={24} color="white" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>SIAMP-G</Text>
-        <View style={{ width: 24 }} />
-      </View>
-      {/* Content */}
-      <View style={styles.content}>
-        {/* Icon */}
-        <View style={styles.iconContainer}>
-          <MaterialIcons name="send" size={32} color="#666" />
-        </View>
-        {/* Title */}
-        <Text style={styles.title}>Verifica tu cuenta</Text>        {/* Subtitle */}
-        <Text style={styles.subtitle}>
-          Por favor ingresa el código de 4 dígitos{"\n"}
-          enviado al correo {userEmail}
-        </Text>
-        {/* Code Input */}
-        <View style={styles.codeContainer}>
-          {code.map((digit, index) => (
-            <TextInput
-              key={index}
-              ref={ref => { inputRefs.current[index] = ref; }}
-              style={styles.codeInput}
-              value={digit}
-              onChangeText={(text) => handleCodeChange(text, index)}
-              onKeyPress={(e) => handleKeyPress(e, index)}
-              keyboardType="numeric"
-              maxLength={1}
-              textAlign="center"
-              autoFocus={index === 0}
-              returnKeyType="next"
-            />
-          ))}
-        </View>        {/* Resend Link */}
-        <View style={styles.resendContainer}>
-          <Text style={styles.resendText}>¿No recibiste el correo? </Text>
-          <TouchableOpacity 
-            onPress={handleResendCode}
-            disabled={resendLoading}
-            style={[styles.resendButton, resendLoading && styles.resendButtonDisabled]}
+      <ScrollView>
+
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => {
+              if (navigation.canGoBack && navigation.canGoBack()) {
+                navigation.goBack();
+              } else {
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'Auth', params: { screen: 'Login' } }],
+                });
+              }
+            }}
           >
-            <Text style={[styles.resendLink, resendLoading && styles.resendLinkDisabled]}>
-              {resendLoading ? 'Reenviando...' : 'Reenviar'}
+            <MaterialIcons name="arrow-back" size={24} color="white" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>SIAMP-G</Text>
+          <View style={{ width: 24 }} />
+        </View>
+        <View style={styles.content}>
+          <View style={styles.iconContainer}>
+            <MaterialIcons name="send" size={32} color="#666" />
+          </View>
+          <Text style={styles.title}>Verifica tu cuenta</Text>
+          <Text style={styles.subtitle}>
+            Por favor ingresa el código de 4 dígitos{"\n"}
+            enviado al correo {userEmail}
+          </Text>
+          {/* Code Input */}
+          <View style={styles.codeContainer}>
+            {code.map((digit, index) => (
+              <TextInput
+                key={index}
+                ref={ref => { inputRefs.current[index] = ref; }}
+                style={styles.codeInput}
+                value={digit}
+                onChangeText={(text) => handleCodeChange(text, index)}
+                onKeyPress={(e) => handleKeyPress(e, index)}
+                keyboardType="numeric"
+                maxLength={1}
+                textAlign="center"
+                autoFocus={index === 0}
+                returnKeyType="next"
+              />
+            ))}
+          </View>
+
+          <View style={styles.resendContainer}>
+            <Text style={styles.resendText}>¿No recibiste el correo? </Text>
+            <TouchableOpacity 
+              onPress={handleResendCode}
+              disabled={resendLoading}
+              style={[styles.resendButton, resendLoading && styles.resendButtonDisabled]}
+            >
+              <Text style={[styles.resendLink, resendLoading && styles.resendLinkDisabled]}>
+                {resendLoading ? 'Reenviando...' : 'Reenviar'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity 
+            style={[styles.confirmButton, verifyLoading && styles.confirmButtonDisabled]} 
+            onPress={handleConfirm}
+            disabled={verifyLoading}
+          >
+            <Text style={styles.confirmButtonText}>
+              {verifyLoading ? 'Verificando...' : 'Confirmar'}
             </Text>
           </TouchableOpacity>
-        </View>        {/* Confirm Button */}
-        <TouchableOpacity 
-          style={[styles.confirmButton, verifyLoading && styles.confirmButtonDisabled]} 
-          onPress={handleConfirm}
-          disabled={verifyLoading}
-        >
-          <Text style={styles.confirmButtonText}>
-            {verifyLoading ? 'Verificando...' : 'Confirmar'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -195,6 +194,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
+    width: '100%',
   },
   backButton: {
     padding: 4,

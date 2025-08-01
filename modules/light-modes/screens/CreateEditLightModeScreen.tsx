@@ -5,66 +5,71 @@ import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TabParamList } from '../../../navigation/TabNavigator';
 import {
-    CreateLightModeDto,
-    RGBColor,
-    ScheduleTime,
-    TimeRange,
-    UpdateLightModeDto,
-    lightModeService
+  CreateLightModeDto,
+  SequenceStep,
+  UpdateLightModeDto,
+  lightModeService
 } from '../services/lightModeService';
 
 type CreateEditLightModeRouteProp = RouteProp<TabParamList, 'CreateLightMode'> | RouteProp<TabParamList, 'EditLightMode'>;
+type CreateEditLightModeNavigationProp = BottomTabNavigationProp<TabParamList>;
 
 export default function CreateEditLightModeScreen() {
-  const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
+  const navigation = useNavigation<CreateEditLightModeNavigationProp>();
   const route = useRoute<CreateEditLightModeRouteProp>();
-  const lightModeId = (route.params as any)?.lightModeId;
+
+  const lightModeId = 'params' in route && route.params?.lightModeId;
   const isEditing = !!lightModeId;
 
+  // Estado básico
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-
-  // Form state
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [habitatType, setHabitatType] = useState<'terrarium' | 'aquarium' | 'garden' | 'greenhouse'>('terrarium');
-  
-  // Sequence step state (simplified - one step for now)
-  const [power, setPower] = useState<'on' | 'off'>('on');
-  const [brightness, setBrightness] = useState(75);
-  const [color, setColor] = useState<RGBColor>({ r: 255, g: 255, b: 255 });
-  const [temperature, setTemperature] = useState(5500);
-  const [colorMode, setColorMode] = useState<'rgb' | 'temperature'>('rgb');
-  const [duration, setDuration] = useState(30);
-  const [transitionType, setTransitionType] = useState<'fade' | 'instant'>('fade');
-  const [transitionDuration, setTransitionDuration] = useState(2);
-  
-  const [scheduleEnabled, setScheduleEnabled] = useState(false);
-  const [timeRanges, setTimeRanges] = useState<TimeRange[]>([]);
 
-  // Load existing light mode if editing
+  // Estado de secuencia
+  const [sequence, setSequence] = useState<SequenceStep[]>([
+    {
+      duration: 30,
+      state: {
+        power: 'on',
+        brightness: 100,
+        color: {
+          mode: 'rgb',
+          rgb: { r: 255, g: 255, b: 255 },
+          temperature: 6500,
+        },
+      },
+      transition: {
+        type: 'fade',
+        duration: 5,
+      },
+    },
+  ]);
+
   useEffect(() => {
-    if (isEditing && lightModeId) {
+    if (isEditing) {
       loadLightMode();
     }
-  }, [isEditing, lightModeId]);
+  }, [isEditing]);
 
   const loadLightMode = async () => {
     try {
       setLoading(true);
-      const response = await lightModeService.getLightModeById(lightModeId!);
+      const response = await lightModeService.getLightModeById(lightModeId as string);
 
       if (response._isSuccess && response._value) {
         const lightMode = response._value;
@@ -72,21 +77,10 @@ export default function CreateEditLightModeScreen() {
         setDescription(lightMode.description || '');
         setHabitatType(lightMode.habitatType);
         
-        // Extract data from first sequence step if exists
+        // Load sequence steps
         if (lightMode.sequence && lightMode.sequence.length > 0) {
-          const firstStep = lightMode.sequence[0];
-          setPower(firstStep.state.power);
-          setBrightness(firstStep.state.brightness);
-          setColor(firstStep.state.color.rgb);
-          setTemperature(firstStep.state.color.temperature);
-          setColorMode(firstStep.state.color.mode);
-          setDuration(firstStep.duration);
-          setTransitionType(firstStep.transition.type);
-          setTransitionDuration(firstStep.transition.duration);
+          setSequence(lightMode.sequence);
         }
-        
-        setScheduleEnabled(lightMode.schedule?.isEnabled || false);
-        setTimeRanges(lightMode.schedule?.timeRanges || []);
       } else {
         Alert.alert('Error', response._error || 'No se pudo cargar el modo de iluminación');
         navigation.goBack();
@@ -106,6 +100,11 @@ export default function CreateEditLightModeScreen() {
       return;
     }
 
+    if (sequence.length === 0) {
+      Alert.alert('Error', 'Debe agregar al menos un paso en la secuencia');
+      return;
+    }
+
     try {
       setSaving(true);
 
@@ -113,33 +112,12 @@ export default function CreateEditLightModeScreen() {
         name: name.trim(),
         description: description.trim() || undefined,
         habitatType,
-        sequence: [
-          {
-            duration,
-            state: {
-              power,
-              brightness,
-              color: {
-                mode: colorMode,
-                rgb: color,
-                temperature,
-              },
-            },
-            transition: {
-              type: transitionType,
-              duration: transitionDuration,
-            },
-          },
-        ],
-        schedule: scheduleEnabled ? {
-          isEnabled: true,
-          timeRanges,
-        } : undefined,
+        sequence,
       };
 
       let response;
       if (isEditing) {
-        response = await lightModeService.updateLightMode(lightModeId!, data as UpdateLightModeDto);
+        response = await lightModeService.updateLightMode(lightModeId as string, data as UpdateLightModeDto);
       } else {
         response = await lightModeService.createLightMode(data as CreateLightModeDto);
       }
@@ -161,31 +139,62 @@ export default function CreateEditLightModeScreen() {
     }
   };
 
-  const addTimeRange = () => {
-    setTimeRanges([
-      ...timeRanges,
-      {
-        start: { hour: 8, minute: 0 },
-        end: { hour: 20, minute: 0 },
+  const addSequenceStep = () => {
+    const newStep: SequenceStep = {
+      duration: 30,
+      state: {
+        power: 'on',
+        brightness: 100,
+        color: {
+          mode: 'rgb',
+          rgb: { r: 255, g: 255, b: 255 },
+          temperature: 6500,
+        },
       },
-    ]);
+      transition: {
+        type: 'fade',
+        duration: 5,
+      },
+    };
+    setSequence([...sequence, newStep]);
   };
 
-  const removeTimeRange = (index: number) => {
-    setTimeRanges(timeRanges.filter((_, i) => i !== index));
+  const removeSequenceStep = (index: number) => {
+    if (sequence.length > 1) {
+      setSequence(sequence.filter((_, i) => i !== index));
+    }
   };
 
-  const updateTimeRange = (index: number, field: keyof TimeRange, value: ScheduleTime) => {
-    const updated = [...timeRanges];
-    updated[index] = { ...updated[index], [field]: value };
-    setTimeRanges(updated);
+  const updateSequenceStep = (index: number, field: string, value: any) => {
+    const updated = [...sequence];
+    const step = updated[index];
+    
+    if (field === 'duration') {
+      step.duration = value;
+    } else if (field === 'state.power') {
+      step.state.power = value;
+    } else if (field === 'state.brightness') {
+      step.state.brightness = value;
+    } else if (field === 'state.color.mode') {
+      step.state.color.mode = value;
+    } else if (field === 'state.color.rgb') {
+      step.state.color.rgb = value;
+    } else if (field === 'state.color.temperature') {
+      step.state.color.temperature = value;
+    } else if (field === 'transition.type') {
+      step.transition.type = value;
+    } else if (field === 'transition.duration') {
+      step.transition.duration = value;
+    }
+    
+    setSequence(updated);
   };
 
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#8EC5FC" />
+          <ActivityIndicator size="large" color="#007AFF" />
           <Text style={styles.loadingText}>Cargando modo de iluminación...</Text>
         </View>
       </SafeAreaView>
@@ -253,272 +262,214 @@ export default function CreateEditLightModeScreen() {
               >
                 <Picker.Item label="Terrario" value="terrarium" />
                 <Picker.Item label="Acuario" value="aquarium" />
-                <Picker.Item label="Jardín" value="garden" />
-                <Picker.Item label="Invernadero" value="greenhouse" />
               </Picker>
             </View>
           </View>
         </View>
 
-        {/* Configuración de color */}
+        {/* Secuencia de Iluminación */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Color</Text>
-          
-          <View style={styles.colorPreviewContainer}>
-            <View
-              style={[
-                styles.colorPreview,
-                { backgroundColor: `rgb(${color.r}, ${color.g}, ${color.b})` },
-              ]}
-            />
-            <Text style={styles.colorText}>
-              RGB({color.r}, {color.g}, {color.b})
-            </Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitleInHeader}>Secuencia de Iluminación</Text>
+            <TouchableOpacity onPress={addSequenceStep} style={styles.addButton}>
+              <MaterialIcons name="add" size={20} color="#fff" />
+              <Text style={styles.addButtonText}>Agregar Paso</Text>
+            </TouchableOpacity>
           </View>
 
-          <View style={styles.field}>
-            <Text style={styles.label}>Rojo: {color.r}</Text>
-            <Slider
-              style={styles.slider}
-              minimumValue={0}
-              maximumValue={255}
-              value={color.r}
-              onValueChange={(value) => setColor({ ...color, r: Math.round(value) })}
-              minimumTrackTintColor="#ff6b6b"
-              maximumTrackTintColor="#ddd"
-            />
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Verde: {color.g}</Text>
-            <Slider
-              style={styles.slider}
-              minimumValue={0}
-              maximumValue={255}
-              value={color.g}
-              onValueChange={(value) => setColor({ ...color, g: Math.round(value) })}
-              minimumTrackTintColor="#51cf66"
-              maximumTrackTintColor="#ddd"
-            />
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Azul: {color.b}</Text>
-            <Slider
-              style={styles.slider}
-              minimumValue={0}
-              maximumValue={255}
-              value={color.b}
-              onValueChange={(value) => setColor({ ...color, b: Math.round(value) })}
-              minimumTrackTintColor="#339af0"
-              maximumTrackTintColor="#ddd"
-            />
-          </View>
-        </View>
-
-        {/* Brillo */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Brillo</Text>
-          
-          <View style={styles.field}>
-            <Text style={styles.label}>Brillo: {brightness}%</Text>
-            <Slider
-              style={styles.slider}
-              minimumValue={0}
-              maximumValue={100}
-              value={brightness}
-              onValueChange={(value) => setBrightness(Math.round(value))}
-              minimumTrackTintColor="#8EC5FC"
-              maximumTrackTintColor="#ddd"
-            />
-          </View>
-        </View>
-
-        {/* Configuración de Secuencia */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Configuración de Secuencia</Text>
-          
-          <View style={styles.field}>
-            <Text style={styles.label}>Estado</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={power}
-                onValueChange={setPower}
-                style={styles.picker}
-              >
-                <Picker.Item label="Encendido" value="on" />
-                <Picker.Item label="Apagado" value="off" />
-              </Picker>
-            </View>
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Modo de Color</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={colorMode}
-                onValueChange={setColorMode}
-                style={styles.picker}
-              >
-                <Picker.Item label="RGB" value="rgb" />
-                <Picker.Item label="Temperatura" value="temperature" />
-              </Picker>
-            </View>
-          </View>
-
-          {colorMode === 'temperature' && (
-            <View style={styles.field}>
-              <Text style={styles.label}>Temperatura: {temperature}K</Text>
-              <Slider
-                style={styles.slider}
-                minimumValue={2700}
-                maximumValue={6500}
-                value={temperature}
-                onValueChange={(value) => setTemperature(Math.round(value))}
-                minimumTrackTintColor="#8EC5FC"
-                maximumTrackTintColor="#ddd"
-              />
-            </View>
-          )}
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Duración: {duration} segundos</Text>
-            <Slider
-              style={styles.slider}
-              minimumValue={1}
-              maximumValue={300}
-              value={duration}
-              onValueChange={(value) => setDuration(Math.round(value))}
-              minimumTrackTintColor="#8EC5FC"
-              maximumTrackTintColor="#ddd"
-            />
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Tipo de Transición</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={transitionType}
-                onValueChange={setTransitionType}
-                style={styles.picker}
-              >
-                <Picker.Item label="Fundido" value="fade" />
-                <Picker.Item label="Instantáneo" value="instant" />
-              </Picker>
-            </View>
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Duración de Transición: {transitionDuration} segundos</Text>
-            <Slider
-              style={styles.slider}
-              minimumValue={0}
-              maximumValue={10}
-              value={transitionDuration}
-              onValueChange={(value) => setTransitionDuration(Math.round(value))}
-              minimumTrackTintColor="#8EC5FC"
-              maximumTrackTintColor="#ddd"
-            />
-          </View>
-        </View>
-
-        {/* Programación */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Programación</Text>
-          
-          <TouchableOpacity
-            style={styles.toggleButton}
-            onPress={() => setScheduleEnabled(!scheduleEnabled)}
-          >
-            <Text style={styles.toggleLabel}>Habilitar programación</Text>
-            <MaterialIcons
-              name={scheduleEnabled ? 'toggle-on' : 'toggle-off'}
-              size={24}
-              color={scheduleEnabled ? '#8EC5FC' : '#ccc'}
-            />
-          </TouchableOpacity>
-
-          {scheduleEnabled && (
-            <>
-              <View style={styles.timeRangesHeader}>
-                <Text style={styles.label}>Horarios</Text>
-                <TouchableOpacity onPress={addTimeRange} style={styles.addButton}>
-                  <MaterialIcons name="add" size={20} color="#8EC5FC" />
-                  <Text style={styles.addButtonText}>Agregar Horario</Text>
-                </TouchableOpacity>
+          {sequence.map((step, index) => (
+            <View key={index} style={styles.sequenceStep}>
+              <View style={styles.stepHeader}>
+                <Text style={styles.stepTitle}>Paso {index + 1}</Text>
+                {sequence.length > 1 && (
+                  <TouchableOpacity 
+                    onPress={() => removeSequenceStep(index)} 
+                    style={styles.removeButton}
+                  >
+                    <MaterialIcons name="remove-circle" size={20} color="#dc3545" />
+                  </TouchableOpacity>
+                )}
               </View>
 
-              {timeRanges.map((timeRange, index) => (
-                <View key={index} style={styles.timeRangeCard}>
-                  <View style={styles.timeRangeHeader}>
-                    <Text style={styles.timeRangeTitle}>Horario {index + 1}</Text>
-                    <TouchableOpacity
-                      onPress={() => removeTimeRange(index)}
-                      style={styles.removeButton}
-                    >
-                      <MaterialIcons name="delete" size={20} color="#ff6b6b" />
-                    </TouchableOpacity>
-                  </View>
+              {/* Duración */}
+              <View style={styles.field}>
+                <Text style={styles.label}>Duración (segundos): {step.duration}</Text>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={1}
+                  maximumValue={300}
+                  value={step.duration}
+                  onValueChange={(value) => updateSequenceStep(index, 'duration', Math.round(value))}
+                  minimumTrackTintColor="#007AFF"
+                  maximumTrackTintColor="#ddd"
+                  thumbTintColor="#007AFF"
+                />
+              </View>
 
-                  <View style={styles.timeRow}>
-                    <View style={styles.timeField}>
-                      <Text style={styles.timeLabel}>Inicio</Text>
-                      <View style={styles.timeInputs}>
-                        <TextInput
-                          style={styles.timeInput}
-                          value={timeRange.start.hour.toString().padStart(2, '0')}
-                          onChangeText={(text) => {
-                            const hour = Math.min(23, Math.max(0, parseInt(text) || 0));
-                            updateTimeRange(index, 'start', { ...timeRange.start, hour });
-                          }}
-                          keyboardType="numeric"
-                          maxLength={2}
-                        />
-                        <Text>:</Text>
-                        <TextInput
-                          style={styles.timeInput}
-                          value={timeRange.start.minute.toString().padStart(2, '0')}
-                          onChangeText={(text) => {
-                            const minute = Math.min(59, Math.max(0, parseInt(text) || 0));
-                            updateTimeRange(index, 'start', { ...timeRange.start, minute });
-                          }}
-                          keyboardType="numeric"
-                          maxLength={2}
-                        />
-                      </View>
-                    </View>
-
-                    <View style={styles.timeField}>
-                      <Text style={styles.timeLabel}>Fin</Text>
-                      <View style={styles.timeInputs}>
-                        <TextInput
-                          style={styles.timeInput}
-                          value={timeRange.end.hour.toString().padStart(2, '0')}
-                          onChangeText={(text) => {
-                            const hour = Math.min(23, Math.max(0, parseInt(text) || 0));
-                            updateTimeRange(index, 'end', { ...timeRange.end, hour });
-                          }}
-                          keyboardType="numeric"
-                          maxLength={2}
-                        />
-                        <Text>:</Text>
-                        <TextInput
-                          style={styles.timeInput}
-                          value={timeRange.end.minute.toString().padStart(2, '0')}
-                          onChangeText={(text) => {
-                            const minute = Math.min(59, Math.max(0, parseInt(text) || 0));
-                            updateTimeRange(index, 'end', { ...timeRange.end, minute });
-                          }}
-                          keyboardType="numeric"
-                          maxLength={2}
-                        />
-                      </View>
-                    </View>
-                  </View>
+              {/* Estado de Encendido */}
+              <View style={styles.field}>
+                <Text style={styles.label}>Estado</Text>
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={step.state.power}
+                    onValueChange={(value) => updateSequenceStep(index, 'state.power', value)}
+                    style={styles.picker}
+                  >
+                    <Picker.Item label="Encendido" value="on" />
+                    <Picker.Item label="Apagado" value="off" />
+                  </Picker>
                 </View>
-              ))}
-            </>
-          )}
+              </View>
+
+              {step.state.power === 'on' && (
+                <>
+                  {/* Brillo */}
+                  <View style={styles.field}>
+                    <Text style={styles.label}>Brillo: {step.state.brightness}%</Text>
+                    <Slider
+                      style={styles.slider}
+                      minimumValue={1}
+                      maximumValue={100}
+                      value={step.state.brightness}
+                      onValueChange={(value) => updateSequenceStep(index, 'state.brightness', Math.round(value))}
+                      minimumTrackTintColor="#007AFF"
+                      maximumTrackTintColor="#ddd"
+                      thumbTintColor="#007AFF"
+                    />
+                  </View>
+
+                  {/* Modo de Color */}
+                  <View style={styles.field}>
+                    <Text style={styles.label}>Modo de Color</Text>
+                    <View style={styles.pickerContainer}>
+                      <Picker
+                        selectedValue={step.state.color.mode}
+                        onValueChange={(value) => updateSequenceStep(index, 'state.color.mode', value)}
+                        style={styles.picker}
+                      >
+                        <Picker.Item label="RGB" value="rgb" />
+                        <Picker.Item label="Temperatura" value="temperature" />
+                      </Picker>
+                    </View>
+                  </View>
+
+                  {step.state.color.mode === 'rgb' ? (
+                    <>
+                      {/* Color RGB */}
+                      <View style={styles.field}>
+                        <Text style={styles.label}>Color RGB</Text>
+                        <View 
+                          style={[
+                            styles.colorPreview, 
+                            { backgroundColor: `rgb(${step.state.color.rgb.r}, ${step.state.color.rgb.g}, ${step.state.color.rgb.b})` },
+                          ]}
+                        >
+                          <Text style={styles.colorText}>
+                            RGB({step.state.color.rgb.r}, {step.state.color.rgb.g}, {step.state.color.rgb.b})
+                          </Text>
+                        </View>
+
+                        <View style={styles.rgbControls}>
+                          <Text style={styles.label}>Rojo: {step.state.color.rgb.r}</Text>
+                          <Slider
+                            style={styles.slider}
+                            minimumValue={0}
+                            maximumValue={255}
+                            value={step.state.color.rgb.r}
+                            onValueChange={(value) => {
+                              const newRgb = { ...step.state.color.rgb, r: Math.round(value) };
+                              updateSequenceStep(index, 'state.color.rgb', newRgb);
+                            }}
+                            minimumTrackTintColor="#ff0000"
+                            maximumTrackTintColor="#ddd"
+                            thumbTintColor="#ff0000"
+                          />
+
+                          <Text style={styles.label}>Verde: {step.state.color.rgb.g}</Text>
+                          <Slider
+                            style={styles.slider}
+                            minimumValue={0}
+                            maximumValue={255}
+                            value={step.state.color.rgb.g}
+                            onValueChange={(value) => {
+                              const newRgb = { ...step.state.color.rgb, g: Math.round(value) };
+                              updateSequenceStep(index, 'state.color.rgb', newRgb);
+                            }}
+                            minimumTrackTintColor="#00ff00"
+                            maximumTrackTintColor="#ddd"
+                            thumbTintColor="#00ff00"
+                          />
+
+                          <Text style={styles.label}>Azul: {step.state.color.rgb.b}</Text>
+                          <Slider
+                            style={styles.slider}
+                            minimumValue={0}
+                            maximumValue={255}
+                            value={step.state.color.rgb.b}
+                            onValueChange={(value) => {
+                              const newRgb = { ...step.state.color.rgb, b: Math.round(value) };
+                              updateSequenceStep(index, 'state.color.rgb', newRgb);
+                            }}
+                            minimumTrackTintColor="#0000ff"
+                            maximumTrackTintColor="#ddd"
+                            thumbTintColor="#0000ff"
+                          />
+                        </View>
+                      </View>
+                    </>
+                  ) : (
+                    <>
+                      {/* Temperatura de Color */}
+                      <View style={styles.field}>
+                        <Text style={styles.label}>Temperatura: {step.state.color.temperature}K</Text>
+                        <Slider
+                          style={styles.slider}
+                          minimumValue={2700}
+                          maximumValue={6500}
+                          value={step.state.color.temperature}
+                          onValueChange={(value) => updateSequenceStep(index, 'state.color.temperature', Math.round(value))}
+                          minimumTrackTintColor="#FFA500"
+                          maximumTrackTintColor="#ddd"
+                          thumbTintColor="#FFA500"
+                        />
+                      </View>
+                    </>
+                  )}
+                </>
+              )}
+
+              {/* Transición */}
+              <View style={styles.field}>
+                <Text style={styles.label}>Tipo de Transición</Text>
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={step.transition.type}
+                    onValueChange={(value) => updateSequenceStep(index, 'transition.type', value)}
+                    style={styles.picker}
+                  >
+                    <Picker.Item label="Desvanecimiento" value="fade" />
+                    <Picker.Item label="Instantáneo" value="instant" />
+                  </Picker>
+                </View>
+              </View>
+
+              {step.transition.type === 'fade' && (
+                <View style={styles.field}>
+                  <Text style={styles.label}>Duración de Transición: {step.transition.duration}s</Text>
+                  <Slider
+                    style={styles.slider}
+                    minimumValue={1}
+                    maximumValue={30}
+                    value={step.transition.duration}
+                    onValueChange={(value) => updateSequenceStep(index, 'transition.duration', Math.round(value))}
+                    minimumTrackTintColor="#007AFF"
+                    maximumTrackTintColor="#ddd"
+                    thumbTintColor="#007AFF"
+                  />
+                </View>
+              )}
+            </View>
+          ))}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -529,6 +480,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666',
   },
   header: {
     flexDirection: 'row',
@@ -549,47 +510,56 @@ const styles = StyleSheet.create({
     color: '#333',
     flex: 1,
     textAlign: 'center',
+    marginHorizontal: 16,
   },
   saveButton: {
-    backgroundColor: '#8EC5FC',
+    backgroundColor: '#007AFF',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 6,
+    borderRadius: 8,
     minWidth: 80,
     alignItems: 'center',
   },
   saveButtonDisabled: {
-    opacity: 0.7,
+    backgroundColor: '#999',
   },
   saveButtonText: {
     color: '#fff',
     fontWeight: '600',
+    fontSize: 14,
   },
   content: {
     flex: 1,
     padding: 16,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#666',
-  },
   section: {
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 8,
     padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: '#333',
     marginBottom: 16,
+  },
+  sectionTitleInHeader: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    flex: 1,
   },
   field: {
     marginBottom: 16,
@@ -606,11 +576,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    fontSize: 16,
+    fontSize: 14,
     backgroundColor: '#fff',
   },
   textArea: {
-    minHeight: 80,
+    height: 80,
     textAlignVertical: 'top',
   },
   pickerContainer: {
@@ -622,100 +592,64 @@ const styles = StyleSheet.create({
   picker: {
     height: 50,
   },
-  colorPreviewContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  colorPreview: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    borderWidth: 2,
-    borderColor: '#ddd',
-    marginRight: 12,
-  },
-  colorText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
-  },
   slider: {
+    width: '100%',
     height: 40,
-  },
-  toggleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-  },
-  toggleLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
-  },
-  timeRangesHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 16,
-    marginBottom: 12,
   },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    backgroundColor: '#28a745',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
   },
   addButtonText: {
-    color: '#8EC5FC',
+    color: '#fff',
     fontWeight: '500',
-  },
-  timeRangeCard: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
-  },
-  timeRangeHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  timeRangeTitle: {
+    marginLeft: 4,
     fontSize: 14,
-    fontWeight: '500',
+  },
+  sequenceStep: {
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 12,
+    backgroundColor: '#f9f9f9',
+  },
+  stepHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  stepTitle: {
+    fontSize: 16,
+    fontWeight: '600',
     color: '#333',
   },
   removeButton: {
     padding: 4,
   },
-  timeRow: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  timeField: {
-    flex: 1,
-  },
-  timeLabel: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 4,
-  },
-  timeInputs: {
-    flexDirection: 'row',
+  colorPreview: {
+    height: 40,
+    borderRadius: 8,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
-  },
-  timeInput: {
+    marginBottom: 8,
     borderWidth: 1,
     borderColor: '#ddd',
-    borderRadius: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    fontSize: 16,
-    textAlign: 'center',
-    width: 40,
-    backgroundColor: '#fff',
+  },
+  colorText: {
+    color: '#000',
+    fontWeight: '500',
+    fontSize: 12,
+    textShadowColor: '#fff',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 1,
+  },
+  rgbControls: {
+    marginTop: 8,
   },
 });

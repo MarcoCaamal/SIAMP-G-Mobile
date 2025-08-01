@@ -16,10 +16,8 @@ import { HapticTab } from '../modules/shared/components/HapticTab';
 import TabBarBackground from '../modules/shared/components/ui/TabBarBackground';
 import { Colors } from '../modules/shared/constants/Colors';
 import { useColorScheme } from '../modules/shared/hooks/useColorScheme';
-import HomeScreen from '../modules/shared/screens/HomeScreen';
 
 export type TabParamList = {
-  Home: undefined;
   Devices: undefined;
   LightModes: undefined;
   Schedule: undefined;
@@ -52,14 +50,6 @@ export default function TabNavigator() {
           default: {},
         }),
       }}>
-      <Tab.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{
-          title: 'Inicio',
-          tabBarIcon: ({ color }) => <MaterialIcons size={28} name="home" color={color} />,
-        }}
-      />
       <Tab.Screen
         name="Devices"
         component={DevicesScreen}

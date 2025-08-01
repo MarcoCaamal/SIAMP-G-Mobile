@@ -1,19 +1,23 @@
+import { MaterialIcons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Modal,
-    Pressable,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  Modal,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  View
 } from "react-native";
+import { ImagePickerResponse, launchCamera, launchImageLibrary, MediaType } from 'react-native-image-picker';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuthContext } from "../../auth/context/AuthContext";
+import { API_CONFIG } from "../../shared/config/api.config";
 import { useUserProfile } from "../../users/hooks/useUserProfile";
 
 export default function ProfileScreen() {
@@ -26,6 +30,8 @@ export default function ProfileScreen() {
     updateProfile,
     updateNotifications,
     changePassword,
+    uploadProfilePicture,
+    deleteProfilePicture,
   } = useUserProfile();
 
   const [refreshing, setRefreshing] = useState(false);
@@ -36,6 +42,8 @@ export default function ProfileScreen() {
 
   // Estados para edición de perfil
   const [editName, setEditName] = useState("");
+  const [editFirstLastName, setEditFirstLastName] = useState("");
+  const [editSecondLastName, setEditSecondLastName] = useState("");
   const [editTimezone, setEditTimezone] = useState("");
   // Estados para notificaciones
   const [emailNotifications, setEmailNotifications] = useState(true);
@@ -59,6 +67,8 @@ export default function ProfileScreen() {
   useEffect(() => {
     if (profile) {
       setEditName(profile.name);
+      setEditFirstLastName(profile.firstLastName);
+      setEditSecondLastName(profile.secondLastName);
       setEditTimezone(profile.timezone);
       setEmailNotifications(profile.notificationPreferences.email);
       setPushNotifications(profile.notificationPreferences.push);
@@ -92,8 +102,10 @@ export default function ProfileScreen() {
 
   const handleSaveProfile = async () => {
     const result = await updateProfile({
-      name: editName.trim() !== profile?.name ? editName.trim() : undefined,
-      timezone: editTimezone !== profile?.timezone ? editTimezone : undefined,
+      name: editName.trim(),
+      firstLastName: editFirstLastName.trim(),
+      secondLastName: editSecondLastName.trim(),
+      timezone: editTimezone.trim() || 'America/Mexico_City',
     });
 
     if (result.success) {
@@ -205,6 +217,143 @@ export default function ProfileScreen() {
     ]);
   };
 
+  const handleHelpCenter = () => {
+    Alert.alert(
+      "Centro de Ayuda",
+      "Aquí encontrarás respuestas a las preguntas más frecuentes:\n\n" +
+      "• Cómo conectar dispositivos IoT\n" +
+      "• Configuración de horarios\n" +
+      "• Solución de problemas comunes\n" +
+      "• Guías de instalación\n" +
+      "• Configuración de notificaciones\n\n" +
+      "Para más información, visita nuestro sitio web oficial.",
+      [{ text: "Entendido", style: "default" }]
+    );
+  };
+
+  const handleContactSupport = () => {
+    Alert.alert(
+      "Contactar Soporte",
+      "¿Necesitas ayuda? Puedes contactarnos a través de:\n\n" +
+      "📧 Email: soporte@siamp-g.com\n" +
+      "📱 WhatsApp: +52 999 123 4567\n" +
+      "🕐 Horario: Lun-Vie 9:00-18:00\n\n" +
+      "También puedes crear un ticket de soporte desde la app.",
+      [
+        { text: "Cerrar", style: "cancel" },
+        { 
+          text: "Enviar Email", 
+          onPress: () => {
+            // Aquí podrías abrir el cliente de email
+            Alert.alert("Función en desarrollo", "Próximamente podrás enviar emails directamente desde la app.");
+          }
+        }
+      ]
+    );
+  };
+
+  const handleAboutApp = () => {
+    Alert.alert(
+      "Acerca de SIAMP-G",
+      "SIAMP-G v1.0.0\n\n" +
+      "Sistema Inteligente de Automatización y Monitoreo de tus mascotas\n\n" +
+      "Desarrollado con ❤️ para hacer tus mascotas más felices y saludables.\n\n" +
+      "Características principales:\n" +
+      "• Control remoto de dispositivos IoT\n" +
+      "• Programación de horarios\n" +
+      "• Monitoreo en tiempo real\n" +
+      "• Notificaciones inteligentes\n" +
+      "• Análisis de consumo energético\n\n" +
+      "© 2025 Todos los derechos reservados\n" +
+      "Desarrollado por el equipo SIAMP-G",
+      [{ text: "Cerrar", style: "default" }]
+    );
+  };
+
+  const getProfilePictureUrl = (fileName: string): string | undefined => {
+    if (!fileName) return undefined;
+    // Si ya es una URL completa, devolverla tal como está
+    if (fileName.startsWith('http')) return fileName;
+    // Si es solo el nombre del archivo, construir la URL completa
+    return `${API_CONFIG.BASE_URL.replace('/api', '')}/uploads/profile-pictures/${fileName}`;
+  };
+
+  const handleChangeProfilePicture = () => {
+    Alert.alert(
+      "Foto de Perfil",
+      "¿Qué deseas hacer?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Tomar Foto", onPress: () => openCamera() },
+        { text: "Elegir de Galería", onPress: () => openGallery() },
+        ...(profile?.profilePicture ? [{ text: "Eliminar Foto", style: "destructive" as const, onPress: () => handleDeleteProfilePicture() }] : []),
+      ]
+    );
+  };
+
+  const openCamera = () => {
+    const options = {
+      mediaType: 'photo' as MediaType,
+      quality: 0.8 as any,
+      maxWidth: 800,
+      maxHeight: 800,
+    };
+
+    launchCamera(options, (response: ImagePickerResponse) => {
+      if (response.assets && response.assets[0]) {
+        handleImageSelected(response.assets[0].uri!);
+      }
+    });
+  };
+
+  const openGallery = () => {
+    const options = {
+      mediaType: 'photo' as MediaType,
+      quality: 0.8 as any,
+      maxWidth: 800,
+      maxHeight: 800,
+    };
+
+    launchImageLibrary(options, (response: ImagePickerResponse) => {
+      if (response.assets && response.assets[0]) {
+        handleImageSelected(response.assets[0].uri!);
+      }
+    });
+  };
+
+  const handleImageSelected = async (imageUri: string) => {
+    const result = await uploadProfilePicture(imageUri);
+    if (result.success) {
+      Alert.alert("Éxito", result.message);
+      await fetchProfile(); // Refrescar el perfil para obtener la nueva URL
+    } else {
+      Alert.alert("Error", result.message);
+    }
+  };
+
+  const handleDeleteProfilePicture = async () => {
+    Alert.alert(
+      "Eliminar Foto",
+      "¿Estás seguro de que deseas eliminar tu foto de perfil?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: async () => {
+            const result = await deleteProfilePicture();
+            if (result.success) {
+              Alert.alert("Éxito", result.message);
+              await fetchProfile(); // Refrescar el perfil
+            } else {
+              Alert.alert("Error", result.message);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const displayProfile = profile || authState.user;
 
   if (loading && !profile && !refreshing) {
@@ -270,19 +419,35 @@ export default function ProfileScreen() {
         )}
 
         <View style={styles.header}>
-          <View style={styles.profileImageContainer}>
-            <Text style={styles.profileInitials}>
-              {displayProfile?.name
-                ? displayProfile.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .toUpperCase()
-                : "U"}
-            </Text>
-          </View>
+          <Pressable style={styles.profileImageContainer} onPress={handleChangeProfilePicture}>
+            {profile?.profilePicture ? (
+              <Image 
+                source={{ uri: getProfilePictureUrl(profile.profilePicture)! }} 
+                style={styles.profileImage}
+                onError={() => {
+                  // Si hay error cargando la imagen, actualizar el perfil para remover la referencia
+                  console.log('Error loading profile picture');
+                }}
+              />
+            ) : (
+              <Text style={styles.profileInitials}>
+                {displayProfile?.name
+                  ? displayProfile.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase()
+                  : "U"}
+              </Text>
+            )}
+            <View style={styles.cameraIconOverlay}>
+              <Text style={styles.cameraIcon}><MaterialIcons name="camera" color={""} /></Text>
+            </View>
+          </Pressable>
           <Text style={styles.profileName}>
-            {displayProfile?.name || "Usuario"}
+            {profile ? 
+              `${profile.name} ${profile.firstLastName || ''} ${profile.secondLastName || ''}`.trim() 
+              : displayProfile?.name || "Usuario"}
           </Text>
           <Text style={styles.profileEmail}>
             {displayProfile?.email || "email@ejemplo.com"}
@@ -319,38 +484,19 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Dispositivos</Text>
-
-          <Pressable style={styles.menuItem}>
-            <Text style={styles.menuItemText}>Mis Dispositivos</Text>
-            <Text style={styles.menuItemArrow}>›</Text>
-          </Pressable>
-
-          <Pressable style={styles.menuItem}>
-            <Text style={styles.menuItemText}>Configuración WiFi</Text>
-            <Text style={styles.menuItemArrow}>›</Text>
-          </Pressable>
-
-          <Pressable style={styles.menuItem}>
-            <Text style={styles.menuItemText}>Historial de Actividad</Text>
-            <Text style={styles.menuItemArrow}>›</Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.section}>
           <Text style={styles.sectionTitle}>Soporte</Text>
 
-          <Pressable style={styles.menuItem}>
+          <Pressable style={styles.menuItem} onPress={handleHelpCenter}>
             <Text style={styles.menuItemText}>Centro de Ayuda</Text>
             <Text style={styles.menuItemArrow}>›</Text>
           </Pressable>
 
-          <Pressable style={styles.menuItem}>
+          <Pressable style={styles.menuItem} onPress={handleContactSupport}>
             <Text style={styles.menuItemText}>Contactar Soporte</Text>
             <Text style={styles.menuItemArrow}>›</Text>
           </Pressable>
 
-          <Pressable style={styles.menuItem}>
+          <Pressable style={styles.menuItem} onPress={handleAboutApp}>
             <Text style={styles.menuItemText}>Acerca de SIAMP-G</Text>
             <Text style={styles.menuItemArrow}>›</Text>
           </Pressable>
@@ -401,12 +547,32 @@ export default function ProfileScreen() {
 
           <View style={styles.modalContent}>
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Nombre</Text>
+              <Text style={styles.inputLabel}>Nombre(s)</Text>
               <TextInput
                 style={styles.input}
                 value={editName}
                 onChangeText={setEditName}
-                placeholder="Tu nombre completo"
+                placeholder="Tu(s) nombre(s)"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Primer Apellido</Text>
+              <TextInput
+                style={styles.input}
+                value={editFirstLastName}
+                onChangeText={setEditFirstLastName}
+                placeholder="Tu primer apellido"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Segundo Apellido</Text>
+              <TextInput
+                style={styles.input}
+                value={editSecondLastName}
+                onChangeText={setEditSecondLastName}
+                placeholder="Tu segundo apellido (opcional)"
               />
             </View>
 
@@ -415,7 +581,7 @@ export default function ProfileScreen() {
               <TextInput
                 style={styles.input}
                 value={editTimezone}
-                onChangeText={setEditTimezone}
+                onChangeText={(text) => setEditTimezone(text.trim())}
                 placeholder="Ej: America/Mexico_City"
               />
             </View>
@@ -637,6 +803,29 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
+    position: "relative",
+  },
+  profileImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+  },
+  cameraIconOverlay: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: "#8EC5FC",
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+  cameraIcon: {
+    fontSize: 12,
+    color: "#fff",
   },
   profileInitials: {
     fontSize: 28,
@@ -652,6 +841,12 @@ const styles = StyleSheet.create({
   profileEmail: {
     fontSize: 16,
     color: "#666",
+  },
+  profileMeta: {
+    fontSize: 14,
+    color: "#666",
+    marginTop: 4,
+    textAlign: "center",
   },
   section: {
     marginBottom: 24,
@@ -821,10 +1016,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  profileMeta: {
-    fontSize: 14,
-    color: "#666",
-    marginTop: 4,
-    textAlign: "center",
-  },
 });
+
+

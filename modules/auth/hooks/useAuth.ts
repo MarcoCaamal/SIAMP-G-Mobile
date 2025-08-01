@@ -105,3 +105,29 @@ export const useVerifyEmailCode = () => {
     error,
   };
 };
+
+export const useSendResetPasswordEmail = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const sendResetPasswordEmail = async (email: string) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await authService.sendResetPasswordEmail(email);
+      return response;
+    } catch (err: any) {
+      setError(err.message || 'Error al enviar el email de restablecimiento');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    sendResetPasswordEmail,
+    loading,
+    error,
+  };
+};

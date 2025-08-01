@@ -3,14 +3,14 @@ import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TabParamList } from '../../../navigation/TabNavigator';
@@ -199,7 +199,7 @@ export default function LightModesScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#8EC5FC" />
+          <ActivityIndicator size="large" color="#336075" />
           <Text style={styles.loadingText}>Cargando modos de iluminación...</Text>
         </View>
       </SafeAreaView>
@@ -250,7 +250,7 @@ export default function LightModesScreen() {
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.secondaryButton} onPress={handleImportMode}>
-            <MaterialIcons name="download" size={20} color="#8EC5FC" />
+            <MaterialIcons name="download" size={20} color="#336075" />
             <Text style={styles.secondaryButtonText}>Importar</Text>
           </TouchableOpacity>
         </View>
@@ -413,8 +413,8 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
   },
   filterButtonActive: {
-    backgroundColor: '#8EC5FC',
-    borderColor: '#8EC5FC',
+    backgroundColor: '#336075',
+    borderColor: '#336075',
   },
   filterButtonText: {
     fontSize: 14,
@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#8EC5FC',
+    backgroundColor: '#336075',
     paddingVertical: 12,
     borderRadius: 8,
     gap: 8,
@@ -451,13 +451,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#8EC5FC',
+    borderColor: '#336075',
     paddingVertical: 12,
     borderRadius: 8,
     gap: 8,
   },
   secondaryButtonText: {
-    color: '#8EC5FC',
+    color: '#336075',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -547,7 +547,7 @@ const styles = StyleSheet.create({
   },
   modeHabitat: {
     fontSize: 14,
-    color: '#8EC5FC',
+    color: '#336075',
     fontWeight: '500',
     marginBottom: 4,
   },

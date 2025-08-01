@@ -12,7 +12,7 @@ export const API_CONFIG = {
   //
   // 💡 Para encontrar tu IP local:
   // Windows: ipconfig | Mac/Linux: ifconfig
-  BASE_URL: __DEV__ ? 'http://192.168.0.13:3000/api' : 'https://siamp-api.balam-code.com/api',
+  BASE_URL: __DEV__ ? 'http://192.168.0.13:3000/api' : 'https://siamp-g.canadacentral.cloudapp.azure.com/api',
     // URLs específicas
   AUTH: {
     LOGIN: '/auth/login',
@@ -20,12 +20,14 @@ export const API_CONFIG = {
     REFRESH: '/auth/refresh',
     SEND_VERIFICATION_CODE: '/auth/send-verification-code',
     VERIFY_EMAIL_CODE: '/auth/verify-email-code',
+    SEND_RESET_PASSWORD_EMAIL: '/auth/request-password-reset-code',
   },
   
   USERS: {
     PROFILE: '/users/profile',
     NOTIFICATIONS: '/users/notifications',
     CHANGE_PASSWORD: '/users/change-password',
+    PROFILE_PICTURE: '/users/profile/picture',
   },
   
   LIGHTING_MODES: {
@@ -61,6 +63,7 @@ export const API_URLS = {
     PROFILE: `${API_CONFIG.BASE_URL}${API_CONFIG.USERS.PROFILE}`,
     NOTIFICATIONS: `${API_CONFIG.BASE_URL}${API_CONFIG.USERS.NOTIFICATIONS}`,
     CHANGE_PASSWORD: `${API_CONFIG.BASE_URL}${API_CONFIG.USERS.CHANGE_PASSWORD}`,
+    PROFILE_PICTURE: `${API_CONFIG.BASE_URL}${API_CONFIG.USERS.PROFILE_PICTURE}`,
   },
   
   LIGHTING_MODES: {

@@ -5,6 +5,8 @@ export interface AuthCredentials {
 
 export interface UserRegisterData {
   name: string;
+  firstLastName: string;
+  secondLastName: string;
   email: string;
   password: string;
   timezone: string;

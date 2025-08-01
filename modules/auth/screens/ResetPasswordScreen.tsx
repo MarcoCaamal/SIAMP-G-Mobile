@@ -1,24 +1,32 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-    KeyboardAvoidingView,
-    Platform,
-    SafeAreaView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSendResetPasswordEmail } from '../hooks/useAuth';
 
 const ResetPasswordScreen = ({ navigation }: any) => {
   const [email, setEmail] = useState('');
+  const { sendResetPasswordEmail } = useSendResetPasswordEmail();
 
-  const handleSendEmail = () => {
-    // Aquí implementarías la lógica para enviar el email de restablecimiento
-    console.log('Enviando email a:', email);
-    // navigation.navigate('EmailSent') o mostrar un mensaje de confirmación
+  const handleSendEmail = async () => {
+    const response = await sendResetPasswordEmail(email);
+    if (response._success) {
+      // Navegar a la pantalla de confirmación o mostrar un mensaje
+      // navigation.navigate('EmailSent');
+      console.log('Email de restablecimiento enviado con éxito');
+    } else {
+      // Manejar el error (por ejemplo, mostrar un mensaje)
+      console.error(response._error?.message);
+    }
   };
 
   const handleGoBack = () => {
@@ -27,7 +35,7 @@ const ResetPasswordScreen = ({ navigation }: any) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#7BB3FF" />
+      <StatusBar barStyle="light-content" backgroundColor="#336075" />
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
@@ -91,7 +99,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#7BB3FF',
+    backgroundColor: '#336075',
     paddingHorizontal: 16,
     paddingVertical: 12,
     elevation: 2,
@@ -167,7 +175,7 @@ const styles = StyleSheet.create({
   sendButton: {
     width: '100%',
     height: 50,
-    backgroundColor: '#7BB3FF',
+    backgroundColor: '#336075',
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
@@ -178,7 +186,7 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
   },
   sendButtonDisabled: {
-    backgroundColor: '#b8d1ff',
+    backgroundColor: '#8fbbd2',
     elevation: 0,
     shadowOpacity: 0,
   },
