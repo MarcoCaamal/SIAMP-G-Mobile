@@ -35,11 +35,19 @@ export default function DeviceControlScreen() {
   const [brightness, setBrightness] = useState(50);
   const [selectedColor, setSelectedColor] = useState<RGBColor>({ r: 255, g: 255, b: 255 });
   const [savingChanges, setSavingChanges] = useState(false);
+  const [colorChangeTimeout, setColorChangeTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // Cargar información del dispositivo
   useEffect(() => {
     fetchDevice();
-  }, [deviceId]);
+    
+    // Cleanup function para limpiar timeouts
+    return () => {
+      if (colorChangeTimeout) {
+        clearTimeout(colorChangeTimeout);
+      }
+    };
+  }, [deviceId, colorChangeTimeout]);
   const fetchDevice = async () => {
     console.log('Cargando dispositivo con ID:', deviceId);
     if (!deviceId) {
@@ -114,18 +122,31 @@ export default function DeviceControlScreen() {
     return `#${toHex(color.r)}${toHex(color.g)}${toHex(color.b)}`;
   };
 
-  // Manejador del cambio de color desde el color picker
+  // Manejador del cambio de color desde el color picker con debounce
   const onColorChangeComplete = useCallback((colorHex: string) => {
     const rgbColor = hexToRgb(colorHex);
     console.log('Color seleccionado:', rgbColor);
+    
+    // Actualizar inmediatamente la UI
     setSelectedColor(rgbColor);
-    controlDevice({
-      color: {
-        mode: 'rgb',
-        rgb: rgbColor
-      }
-    });
-  }, []);
+    
+    // Limpiar timeout anterior si existe
+    if (colorChangeTimeout) {
+      clearTimeout(colorChangeTimeout);
+    }
+    
+    // Crear nuevo timeout para enviar el color después de un breve retraso
+    const timeoutId = setTimeout(() => {
+      controlDevice({
+        color: {
+          mode: 'rgb',
+          rgb: rgbColor
+        }
+      });
+    }, 300); // 300ms de debounce
+    
+    setColorChangeTimeout(timeoutId);
+  }, [colorChangeTimeout]);
 
   const controlDevice = async (controlData: DeviceControlRequest) => {
     if (!deviceId) {
@@ -135,8 +156,16 @@ export default function DeviceControlScreen() {
     console.log('Controlando dispositivo con ID:', deviceId, 'con datos:', controlData);
     console.log('Estado actual:', loading, savingChanges);
 
-    // Solo actualizamos UI si el dispositivo no está cargando ni guardando
-    if (loading || savingChanges) return;
+    // Solo bloquear si está cargando inicialmente
+    if (loading) return;
+    
+    // Para colores, permitir múltiples cambios rápidos sobrescribiendo la petición anterior
+    if (controlData.color && savingChanges) {
+      console.log('Permitiendo cambio de color durante guardado');
+    } else if (savingChanges) {
+      // Para otros controles, esperar a que termine la operación actual
+      return;
+    }
     
 
 
@@ -145,10 +174,14 @@ export default function DeviceControlScreen() {
 
     setSavingChanges(true);
     try {
-      // Para mejorar la experiencia, optimismo UI: actualizar inmediatamente, luego revertir si falla
+      // Para cambios de color, actualizar inmediatamente la UI para mejor responsividad
+      if (controlData.color?.rgb) {
+        setSelectedColor(controlData.color.rgb);
+      }
+      
+      // Para otros controles, aplicar optimistic UI
       if (controlData.on !== undefined) setIsOn(controlData.on);
       if (controlData.brightness !== undefined) setBrightness(controlData.brightness);
-      if (controlData.color?.rgb) setSelectedColor(controlData.color.rgb);
 
       const response = await deviceService.controlDevice(deviceId, controlData);
       console.log('Respuesta del servidor al controlar dispositivo:', response);
@@ -168,9 +201,18 @@ export default function DeviceControlScreen() {
             setBrightness(controlData.brightness === 0 ? 0 : (status.brightness || 50));
           }
 
-          // Solo actualizar el color si se envió en la solicitud
+          // Para el color, confiar más en lo que ya se actualizó localmente
           if (controlData.color?.rgb && status.color?.rgb) {
-            setSelectedColor(status.color.rgb);
+            // Solo actualizar si hay una diferencia significativa
+            const localColor = controlData.color.rgb;
+            const serverColor = status.color.rgb;
+            const colorDiff = Math.abs(localColor.r - serverColor.r) + 
+                             Math.abs(localColor.g - serverColor.g) + 
+                             Math.abs(localColor.b - serverColor.b);
+            
+            if (colorDiff > 10) { // Solo actualizar si la diferencia es significativa
+              setSelectedColor(status.color.rgb);
+            }
           }
         }
       } else {
